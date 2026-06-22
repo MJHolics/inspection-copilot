@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Env / secrets
+.env
+*.key
+sa.json
+
+# Data & artifacts
+data/raw/
+data/db/*.sqlite
+.chroma/
+uploads/
+output/
+traces/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

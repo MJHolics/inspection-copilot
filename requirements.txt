@@ -1,0 +1,28 @@
+# --- 오케스트레이션 / 에이전트 ---
+langgraph>=0.2
+langchain-core>=0.3
+
+# --- LLM 제공자(쓰는 것만 설치) ---
+google-genai>=0.3        # Gemini (무료 티어 기본)
+# anthropic>=0.40
+# openai>=1.40
+
+# --- RAG (Knowledge agent) ---
+chromadb>=0.5
+
+# --- Analytics agent (NL2SQL) ---
+# 합성 검사 DB는 표준 라이브러리 sqlite3 사용(추가 의존성 없음)
+
+# --- Vision agent ---
+ultralytics>=8.2         # YOLOv8
+pillow>=10.0
+
+# --- 서빙 / 리포트 ---
+fastapi>=0.110
+uvicorn>=0.30
+reportlab>=4.0           # PDF 리포트
+gradio>=5.9              # 데모 UI
+
+# --- 공통 ---
+numpy>=1.26
+pydantic>=2.0
