@@ -1,5 +1,7 @@
 # Inspection Copilot — 멀티에이전트 품질 검사 코파일럿
 
+[![ci](https://github.com/MJHolics/inspection-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/MJHolics/inspection-copilot/actions/workflows/ci.yml)
+
 > 제조/의료 검사 현장을 위한 **검증 가능한 멀티에이전트 시스템**. 검사자가 자연어로 묻거나
 > 이미지를 올리면, supervisor 에이전트가 의도를 파악해 전문 에이전트(비전·분석·지식·리포트)로
 > **동적 라우팅**하고 근거와 함께 답한다.

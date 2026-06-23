@@ -58,7 +58,10 @@ def test_llm_router_falls_back_without_llm():
 
 def test_llm_router_uses_injected_plan():
     agents = default_registry()
-    fake = lambda text, tools: {"steps": ["knowledge", "report"], "reason": "fake"}
+
+    def fake(text, tools):
+        return {"steps": ["knowledge", "report"], "reason": "fake"}
+
     plan = LLMRouter(llm=fake).plan(AgentRequest(text="아무거나"), agents)
     assert plan.steps == ["knowledge", "report"]
     assert plan.router == "llm"

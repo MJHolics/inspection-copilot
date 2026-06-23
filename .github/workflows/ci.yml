@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # P1 코어는 순수 stdlib라 무거운 의존성(torch·chromadb·langgraph) 없이 테스트된다.
+      # graph 테스트는 langgraph 미설치 시 자동 skip.
+      - name: Install test deps
+        run: pip install pytest ruff
+      - name: Lint
+        run: ruff check app tests cli.py
+      - name: Test
+        run: pytest -q
