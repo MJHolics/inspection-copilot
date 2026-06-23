@@ -39,6 +39,12 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 > **Report** 에이전트는 앞 단계 결과를 **구조화 리포트(요약·발견·권고·종합신뢰도·사람검토
 > 배지)**로 합친다. 종합 신뢰도는 관여 에이전트 신뢰도의 최솟값(가장 약한 고리), 사람검토는
 > OR로 전파한다. 기본은 markdown, reportlab이 있으면 한글 PDF도 생성(없으면 markdown 폴백).
+>
+> **Vision** 에이전트는 이미지 분류 확률에 **trust 게이트**(conformal 예측집합 + 신뢰도/OOD)를
+> 적용한다(`app/trust.py`, `vlm-defect-inspector`의 conformal LAC/APS·OOD 방법론 순수 포팅).
+> 신뢰도가 게이트(0.8) 미만이거나 예측집합이 단일로 좁혀지지 않으면 **환각 대신 사람검토로 멈춘다**.
+> 분류 모델은 주입식(predictor) — 이 레포는 가중치를 담지 않으므로 기본은 안전 멈춤이고, 실모델
+> (ResNet18/MobileNetV3 ONNX)을 감싸 주입하면 전체 경로가 동작한다. trust 층은 순수·오프라인 테스트.
 
 요청마다 supervisor가 의도를 파악해 서로 다른 에이전트 조합·순서로 라우팅하고(고정 체인 ❌),
 각 단계를 트레이싱하며, 어느 에이전트든 신뢰도가 낮으면 전체를 사람검토로 멈춘다.
@@ -75,6 +81,6 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 |---|---|---|
 | P0 | 레포 골격 + 설계문서 | ✅ |
 | P1 | Supervisor 동적 라우터 + 서브에이전트 스텁(인터페이스 고정) + 트레이싱 | ✅ |
-| P2 | 서브에이전트 실구현 — **Analytics ✅ · Knowledge ✅ · Report ✅**, Vision ⏳ | 🔄 |
+| P2 | 서브에이전트 실구현 — **Analytics ✅ · Knowledge ✅ · Report ✅ · Vision ✅** | ✅ |
 | P3 | Eval 하네스(라우팅·그라운딩·게이트·e2e) + 가드레일 | ✅ |
 | P4 | 서빙(FastAPI) + 데모(gradio) + Docker ✅ · HF Spaces 배포(사용자 push 대기) | 🔄 |

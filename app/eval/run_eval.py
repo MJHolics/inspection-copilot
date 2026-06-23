@@ -43,9 +43,21 @@ def _stub_sql(system: str, user: str) -> str:
     return EVAL_SQL.get(user, "SELECT count(*) AS n FROM inspections")
 
 
-def _build_supervisor(sql_llm) -> Supervisor:
+def _stub_vision(image_path: str) -> list[float]:
+    """결정적 비전 predictor — 자신있는 scratches 예측(trust 게이트 경로를 재현 측정).
+
+    config.DEFECT_CLASSES 순서에 정렬. 최대 신뢰도 0.9(>게이트) + 단일 conformal 집합 → needs_human=False.
+    """
+    from .. import config
+
+    probs = [0.02] * len(config.DEFECT_CLASSES)
+    probs[config.DEFECT_CLASSES.index("scratches")] = 0.9
+    return probs
+
+
+def _build_supervisor(sql_llm, vision_predictor=_stub_vision) -> Supervisor:
     agents = {
-        "vision": VisionAgent(),
+        "vision": VisionAgent(predictor=vision_predictor),
         "analytics": AnalyticsAgent(sql_llm=sql_llm),
         "knowledge": KnowledgeAgent(),
         "report": ReportAgent(),
