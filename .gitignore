@@ -11,6 +11,7 @@ venv/
 sa.json
 
 # Data & artifacts
+data/                 # 합성 검사 DB는 코드로 결정적 생성(커밋 안 함)
 data/raw/
 data/db/*.sqlite
 .chroma/

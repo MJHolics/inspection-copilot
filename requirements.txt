@@ -26,3 +26,7 @@ gradio>=5.9              # 데모 UI
 # --- 공통 ---
 numpy>=1.26
 pydantic>=2.0
+
+# --- 개발/테스트 ---
+pytest>=8.0
+ruff>=0.5

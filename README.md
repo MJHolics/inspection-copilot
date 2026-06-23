@@ -12,13 +12,18 @@
 
 ```bash
 python cli.py "스크래치 결함은 어떤 절차로 처리해야 해?"        # → knowledge
-python cli.py "이번 달 스크래치 불량 몇 건이야?"                 # → analytics
+python cli.py "라인별 불량 건수 많은 순으로 알려줘"             # → analytics (실 NL2SQL)
 python cli.py "이 사진 불량 보고 추세 통계로 보고서 만들어줘" --image x.jpg
 #   → vision → analytics → report (요청에 따라 경로가 달라지는 동적 라우팅)
 
 python -m pytest -q          # 오프라인 단위테스트(LLM·네트워크 불필요)
 python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
 ```
+
+> Analytics 에이전트는 합성 검사 DB(SQLite, `app/db.py`가 시드 고정으로 결정적 생성)에 대해
+> **자연어 → SQL 생성 → SELECT 전용 가드레일 → dry-run 검증 → (실패 시 1회 자기수정) → 실행 →
+> 요약**을 수행한다. SQL 생성에는 LLM 키(Gemini 무료 등)가 필요하며, 키가 없으면 안전하게
+> 사람검토로 멈춘다(라우팅·트레이싱은 그대로 동작).
 
 요청마다 supervisor가 의도를 파악해 서로 다른 에이전트 조합·순서로 라우팅하고(고정 체인 ❌),
 각 단계를 트레이싱하며, 어느 에이전트든 신뢰도가 낮으면 전체를 사람검토로 멈춘다.
@@ -39,6 +44,6 @@ python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
 |---|---|---|
 | P0 | 레포 골격 + 설계문서 | ✅ |
 | P1 | Supervisor 동적 라우터 + 서브에이전트 스텁(인터페이스 고정) + 트레이싱 | ✅ |
-| P2 | 서브에이전트 실구현 | ⏳ |
+| P2 | 서브에이전트 실구현 — **Analytics(NL2SQL) ✅**, Knowledge/Vision/Report ⏳ | 🔄 |
 | P3 | Eval 하네스 + 가드레일 | ⏳ |
 | P4 | 서빙 + 데모 + 배포 | ⏳ |
