@@ -18,6 +18,7 @@ python cli.py "이 사진 불량 보고 추세 통계로 보고서 만들어줘"
 
 python -m pytest -q          # 오프라인 단위테스트(LLM·네트워크 불필요)
 python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
+python -m app.eval.run_eval  # 골든셋 평가 지표(라우팅·그라운딩·게이트·e2e)
 ```
 
 > **Analytics** 에이전트는 합성 검사 DB(SQLite, `app/db.py`가 시드 고정으로 결정적 생성)에 대해
@@ -47,6 +48,22 @@ python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
 - **Eval 하네스**(라우팅 정확도·그라운딩 충실도·end-to-end 성공률)
 - **관측성**(요청별 트레이싱·지표) + **가드레일**(모를 때 멈춤)
 
+## Eval — "측정되는 에이전트"
+
+큐레이션 골든셋(`app/eval/tasks.py`, 12 태스크)에 시스템을 돌려 4개 지표를 **재현 가능하게**
+수치화한다. 라우팅·그라운딩·게이트는 완전 오프라인, Analytics는 SQL 생성만 결정적 스텁으로
+주입해 **실 DB 실행 파이프라인**(가드레일·dry-run·실행·요약)을 측정한다(LLM 'SQL 품질'이 아니라
+시스템 동작을 측정 — 키 불요·결정적). 회귀가 나면 이 수치가 떨어져 잡힌다.
+
+| 지표 | 값 | 의미 |
+|---|---|---|
+| routing_exact_acc | **1.00** | 기대 라우트(에이전트·순서) 정확 일치 |
+| grounding_acc | **1.00** | Knowledge가 기대 SOP 출처에 그라운딩 |
+| gate_acc | **1.00** | needs_human(근거 부족 시 멈춤)이 기대와 일치 |
+| e2e_success_rate | **1.00** | 라우팅+그라운딩+게이트+실행 모두 성공 |
+
+`python -m app.eval.run_eval`로 재현. (현재 골든셋 12건 기준 — 실패 케이스를 추가하면 회귀 탐지력↑)
+
 ## 상태
 
 | Phase | 내용 | 상태 |
@@ -54,5 +71,5 @@ python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
 | P0 | 레포 골격 + 설계문서 | ✅ |
 | P1 | Supervisor 동적 라우터 + 서브에이전트 스텁(인터페이스 고정) + 트레이싱 | ✅ |
 | P2 | 서브에이전트 실구현 — **Analytics ✅ · Knowledge ✅ · Report ✅**, Vision ⏳ | 🔄 |
-| P3 | Eval 하네스 + 가드레일 | ⏳ |
+| P3 | Eval 하네스(라우팅·그라운딩·게이트·e2e) + 가드레일 | ✅ |
 | P4 | 서빙 + 데모 + 배포 | ⏳ |
