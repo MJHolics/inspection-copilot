@@ -57,8 +57,10 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 >
 > **Knowledge** 에이전트는 검사 SOP 문서(`app/docs/sop/`)를 **TF-IDF 코사인으로 검색 →
 > 근거 거리 게이트 → 그라운딩 답(출처 인용)**으로 답한다. 관련 근거가 약하면 환각 대신
-> 사람검토로 멈춘다. 검색기는 주입 가능(베이스라인 TF-IDF → BGE-M3/Chroma 벡터로 교체),
-> 답 생성은 LLM 주입 시 요약, 없으면 추출형으로 동작한다.
+> 사람검토로 멈춘다. 검색기는 주입 가능 — 기본 **TF-IDF 베이스라인**(순수·오프라인)에서
+> **dense 의미검색**(`app/retrieval_vector.py`, ko-sroberta, 동일 `.search` 프로토콜)으로 교체하면
+> 패러프레이즈 질의에서 검색 품질이 오른다(아래 *검색 품질* 표에서 실측 비교). 답 생성은 LLM 주입
+> 시 요약, 없으면 추출형으로 동작한다.
 >
 > **Report** 에이전트는 앞 단계 결과를 **구조화 리포트(요약·발견·권고·종합신뢰도·사람검토
 > 배지)**로 합친다. 종합 신뢰도는 관여 에이전트 신뢰도의 최솟값(가장 약한 고리), 사람검토는
@@ -99,6 +101,20 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 | e2e_success_rate | **1.00** | 라우팅+그라운딩+게이트+실행 모두 성공 |
 
 `python -m app.eval.run_eval`로 재현. (현재 골든셋 15건 기준 — 실패 케이스를 추가하면 회귀 탐지력↑)
+
+### 검색 품질 — 어휘(TF-IDF) vs 의미(dense)
+
+Knowledge의 retriever는 교체 가능하다. 검색 평가셋(`app/eval/retrieval_tasks.py`, 직접매칭 5 +
+**패러프레이즈 5**)로 두 retriever를 같은 지표(Hit@k·MRR)로 실측 비교했다 — 패러프레이즈(문서에
+없는 표현)에서 의미검색의 이득이 드러난다.
+
+| retriever | Hit@1 | Hit@3 | MRR |
+|---|---|---|---|
+| TF-IDF (베이스라인, 순수·오프라인) | 0.70 | 0.90 | 0.767 |
+| **dense (ko-sroberta-multitask)** | **0.80** | **1.00** | **0.883** |
+
+`python -m app.eval.retrieval_eval`로 재현(dense는 sentence-transformers 설치 시, 미설치면
+TF-IDF만). 한국어 임베딩 모델은 `DenseRetriever(model_name=...)`로 BGE-M3 등으로 교체 가능.
 
 ## 상태
 

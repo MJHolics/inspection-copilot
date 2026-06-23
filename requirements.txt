@@ -14,8 +14,10 @@ pydantic>=2.0
 # -- LangGraph 그래프 실행(app/graph.py, 동적 라우팅 시각화) --
 # langgraph>=0.2
 # langchain-core>=0.3
-# -- 벡터 RAG 업그레이드(Knowledge: TF-IDF 베이스라인 → BGE-M3/Chroma) --
-# chromadb>=0.5
+# -- 벡터(의미) 검색 업그레이드(Knowledge: TF-IDF 베이스라인 → dense) --
+#    app/retrieval_vector.py: 기본 ko-sroberta-multitask(한국어), BGE-M3 등으로 교체 가능.
+# sentence-transformers>=2.7
+# chromadb>=0.5            # (대안) 내장 ONNX 임베딩 검색
 # -- Vision 감지 업그레이드(YOLO 박스 단위 검사) --
 # ultralytics>=8.2
 # -- 다른 LLM 제공자 --
