@@ -19,7 +19,12 @@ python cli.py "이 사진 불량 보고 추세 통계로 보고서 만들어줘"
 python -m pytest -q          # 오프라인 단위테스트(LLM·네트워크 불필요)
 python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
 python -m app.eval.run_eval  # 골든셋 평가 지표(라우팅·그라운딩·게이트·e2e)
+
+python demo.py                                      # gradio 데모 → localhost:7860
+uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /inspect /eval)
 ```
+
+서빙·데모·배포는 [DEPLOY.md](DEPLOY.md) 참조(로컬·HF Spaces·Docker).
 
 > **Analytics** 에이전트는 합성 검사 DB(SQLite, `app/db.py`가 시드 고정으로 결정적 생성)에 대해
 > **자연어 → SQL 생성 → SELECT 전용 가드레일 → dry-run 검증 → (실패 시 1회 자기수정) → 실행 →
@@ -72,4 +77,4 @@ python -m app.eval.run_eval  # 골든셋 평가 지표(라우팅·그라운딩·
 | P1 | Supervisor 동적 라우터 + 서브에이전트 스텁(인터페이스 고정) + 트레이싱 | ✅ |
 | P2 | 서브에이전트 실구현 — **Analytics ✅ · Knowledge ✅ · Report ✅**, Vision ⏳ | 🔄 |
 | P3 | Eval 하네스(라우팅·그라운딩·게이트·e2e) + 가드레일 | ✅ |
-| P4 | 서빙 + 데모 + 배포 | ⏳ |
+| P4 | 서빙(FastAPI) + 데모(gradio) + Docker ✅ · HF Spaces 배포(사용자 push 대기) | 🔄 |
