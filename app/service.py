@@ -1,15 +1,20 @@
 """공유 supervisor 팩토리 — 서버·데모·CLI가 동일 인스턴스를 지연 생성해 쓴다."""
 from __future__ import annotations
 
+from .agents import default_registry
 from .supervisor import Supervisor
 
 _sup: Supervisor | None = None
 
 
 def get_supervisor() -> Supervisor:
+    """데모·서빙용 supervisor — 가능하면 실 ONNX 비전 모델을 주입(없으면 안전 멈춤)."""
     global _sup
     if _sup is None:
-        _sup = Supervisor()
+        from .vision_model import load_default_predictor
+
+        agents = default_registry(vision_predictor=load_default_predictor())
+        _sup = Supervisor(agents=agents)
     return _sup
 
 

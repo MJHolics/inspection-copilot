@@ -36,6 +36,8 @@ EVAL_SQL: dict[str, str] = {
         "GROUP BY line ORDER BY n DESC",
     "이 사진 검사하고 라인별 불량 통계로 보고서 줘":
         "SELECT line, count(*) AS n FROM inspections WHERE defect_class != 'none' GROUP BY line",
+    "이번 달 검사 건수 알려줘":
+        "SELECT count(*) AS n FROM inspections WHERE ts >= '2026-06-01'",
 }
 
 

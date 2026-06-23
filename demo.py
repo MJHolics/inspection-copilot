@@ -13,6 +13,8 @@ import gradio as gr
 from app.service import get_supervisor
 
 EXAMPLES = [
+    ["이 이미지를 검사해줘", "samples/sample_01.jpg"],   # 실 ONNX 추론 + trust 게이트
+    ["이 사진 불량인지 보고 라인별 불량 통계로 보고서 만들어줘", "samples/sample_09.jpg"],
     ["스크래치 결함은 어떤 절차로 처리해야 해?", None],
     ["라인별 불량 건수를 많은 순으로 알려줘", None],
     ["크레이징 처리 절차를 정리해서 보고서로 줘", None],

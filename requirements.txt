@@ -2,6 +2,9 @@
 # 오케스트레이션은 표준 라이브러리로 충분(LangGraph는 선택, 아래 참조).
 google-genai>=0.3        # Analytics LLM (Gemini 무료 티어 기본)
 reportlab>=4.0           # Report PDF (내장 한글 CID 폰트)
+onnxruntime>=1.17        # Vision 엣지 CNN 추론(torch 불요, CPU 수 ms)
+numpy>=1.26              # Vision 전처리
+pillow>=10.0             # Vision 이미지 로드
 fastapi>=0.110           # 서빙
 uvicorn>=0.30            # ASGI 서버
 gradio>=5.9              # 데모 UI (HF Spaces)
@@ -13,9 +16,8 @@ pydantic>=2.0
 # langchain-core>=0.3
 # -- 벡터 RAG 업그레이드(Knowledge: TF-IDF 베이스라인 → BGE-M3/Chroma) --
 # chromadb>=0.5
-# -- Vision 에이전트(P2 잔여: YOLO + VLM) --
+# -- Vision 감지 업그레이드(YOLO 박스 단위 검사) --
 # ultralytics>=8.2
-# pillow>=10.0
 # -- 다른 LLM 제공자 --
 # anthropic>=0.40
 # openai>=1.40

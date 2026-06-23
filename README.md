@@ -6,7 +6,26 @@
 > 이미지를 올리면, supervisor 에이전트가 의도를 파악해 전문 에이전트(비전·분석·지식·리포트)로
 > **동적 라우팅**하고 근거와 함께 답한다.
 
-🚧 **개발 중** — 설계와 단계 계획은 [PLAN.md](PLAN.md) 참조.
+설계 배경·단계 계획은 [PLAN.md](PLAN.md), 배포는 [DEPLOY.md](DEPLOY.md) 참조.
+
+## 아키텍처
+
+```
+   사용자(검사 엔지니어): 자연어 질문 / 이미지 업로드
+                     │
+          ┌──────────▼──────────┐
+          │  Supervisor (동적 라우터) │  의도 파악 → 경로 결정(고정 체인 ❌) → 종합
+          └──┬─────┬─────┬─────┬──┘
+             ▼     ▼     ▼     ▼
+        Vision  Analytics Knowledge Report
+        ONNX CNN  NL2SQL   RAG       종합·PDF
+        +conformal +dry-run +근거    +신뢰도
+        /OOD게이트  +자기수정 거리게이트  배지
+             │     │     │     │
+             └──── 트레이싱 · Eval 하네스 · 가드레일(cross-cutting) ────┘
+              요청별 JSONL    라우팅·그라운딩·   "모를 때 멈춤"
+                            게이트·e2e 수치화   (needs_human)
+```
 
 ## 실행 (P1)
 
@@ -40,11 +59,12 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 > 배지)**로 합친다. 종합 신뢰도는 관여 에이전트 신뢰도의 최솟값(가장 약한 고리), 사람검토는
 > OR로 전파한다. 기본은 markdown, reportlab이 있으면 한글 PDF도 생성(없으면 markdown 폴백).
 >
-> **Vision** 에이전트는 이미지 분류 확률에 **trust 게이트**(conformal 예측집합 + 신뢰도/OOD)를
-> 적용한다(`app/trust.py`, `vlm-defect-inspector`의 conformal LAC/APS·OOD 방법론 순수 포팅).
-> 신뢰도가 게이트(0.8) 미만이거나 예측집합이 단일로 좁혀지지 않으면 **환각 대신 사람검토로 멈춘다**.
-> 분류 모델은 주입식(predictor) — 이 레포는 가중치를 담지 않으므로 기본은 안전 멈춤이고, 실모델
-> (ResNet18/MobileNetV3 ONNX)을 감싸 주입하면 전체 경로가 동작한다. trust 층은 순수·오프라인 테스트.
+> **Vision** 에이전트는 **실 엣지 CNN(MobileNetV3-Small, ONNX 6MB, `app/models/`)**으로 결함을
+> 분류하고, 그 확률에 **trust 게이트**(conformal 예측집합 + 신뢰도/OOD)를 적용한다(`app/trust.py`,
+> `vlm-defect-inspector`의 conformal LAC/APS·OOD 방법론 순수 포팅). 신뢰도가 게이트(0.8) 미만이거나
+> 예측집합이 단일로 좁혀지지 않으면 **환각 대신 사람검토로 멈춘다**. 모델은 torch 없이 onnxruntime로
+> CPU 수 ms 추론(`samples/`의 NEU 예시로 데모). 모델·의존성이 없으면 안전 멈춤으로 폴백하고,
+> trust 층 자체는 순수·오프라인 테스트된다.
 
 요청마다 supervisor가 의도를 파악해 서로 다른 에이전트 조합·순서로 라우팅하고(고정 체인 ❌),
 각 단계를 트레이싱하며, 어느 에이전트든 신뢰도가 낮으면 전체를 사람검토로 멈춘다.
@@ -53,7 +73,7 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 
 "동작하는 에이전트"가 아니라 **측정·검증되는 에이전트**:
 - **멀티에이전트 오케스트레이션**(LangGraph supervisor, 동적 tool-calling 라우팅)
-- **비전 검사**(YOLO + VLM + 신뢰도/OOD/conformal 게이트)
+- **비전 검사**(엣지 CNN ONNX + 신뢰도/OOD/conformal 게이트)
 - **데이터 분석**(NL2SQL, dry-run 검증)
 - **지식 그라운딩**(RAG, 근거 거리 게이트)
 - **Eval 하네스**(라우팅 정확도·그라운딩 충실도·end-to-end 성공률)
@@ -61,7 +81,7 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 
 ## Eval — "측정되는 에이전트"
 
-큐레이션 골든셋(`app/eval/tasks.py`, 12 태스크)에 시스템을 돌려 4개 지표를 **재현 가능하게**
+큐레이션 골든셋(`app/eval/tasks.py`, 15 태스크)에 시스템을 돌려 4개 지표를 **재현 가능하게**
 수치화한다. 라우팅·그라운딩·게이트는 완전 오프라인, Analytics는 SQL 생성만 결정적 스텁으로
 주입해 **실 DB 실행 파이프라인**(가드레일·dry-run·실행·요약)을 측정한다(LLM 'SQL 품질'이 아니라
 시스템 동작을 측정 — 키 불요·결정적). 회귀가 나면 이 수치가 떨어져 잡힌다.
@@ -73,7 +93,7 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 | gate_acc | **1.00** | needs_human(근거 부족 시 멈춤)이 기대와 일치 |
 | e2e_success_rate | **1.00** | 라우팅+그라운딩+게이트+실행 모두 성공 |
 
-`python -m app.eval.run_eval`로 재현. (현재 골든셋 12건 기준 — 실패 케이스를 추가하면 회귀 탐지력↑)
+`python -m app.eval.run_eval`로 재현. (현재 골든셋 15건 기준 — 실패 케이스를 추가하면 회귀 탐지력↑)
 
 ## 상태
 

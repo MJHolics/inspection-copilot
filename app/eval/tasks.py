@@ -42,10 +42,16 @@ GOLDEN: list[Task] = [
          expected_top_source="scratches", tags=["routing", "grounding", "multi"]),
     Task("multi-an-rep", "라인별 불량 건수 통계로 보고서 만들어줘", ["analytics", "report"],
          tags=["routing", "analytics", "multi"]),
-    # --- 이미지 → Vision 라우팅(Vision 실구현은 P2 잔여) ---
+    # --- 이미지 → Vision(실 trust 게이트, eval은 결정적 predictor 주입) ---
     Task("img-vis", "이 사진 불량인지 검사해줘", ["vision"],
          image_path="samples/x.jpg", tags=["routing", "vision"]),
     Task("img-multi", "이 사진 검사하고 라인별 불량 통계로 보고서 줘",
          ["vision", "analytics", "report"], image_path="samples/x.jpg",
          tags=["routing", "vision", "analytics", "multi"]),
+    Task("img-rep", "이 사진 검사하고 결과를 보고서로 정리해줘", ["vision", "report"],
+         image_path="samples/x.jpg", tags=["routing", "vision", "multi"]),
+    # --- 추가 그라운딩·분석 케이스(커버리지 확대) ---
+    Task("kn-pit2", "피팅 결함의 원인과 조치 기준을 설명해줘", ["knowledge"],
+         expected_top_source="pitted_surface", tags=["routing", "grounding"]),
+    Task("an-month", "이번 달 검사 건수 알려줘", ["analytics"], tags=["routing", "analytics"]),
 ]
