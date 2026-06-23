@@ -14,8 +14,9 @@ from dataclasses import dataclass, field
 class AgentRequest:
     """서브에이전트에 전달되는 단위 요청.
 
-    `context`는 앞선 에이전트가 남긴 산출물 누적분(에이전트명 → data)이라, 뒤 에이전트가
-    참조할 수 있다(예: Report가 Vision/Analytics 결과를 모아 리포트화).
+    `context`는 앞선 에이전트가 남긴 결과 누적분(에이전트명 → {summary, confidence,
+    needs_human, ok, data})이라, 뒤 에이전트가 참조할 수 있다(예: Report가 Vision/Analytics
+    결과를 모아 리포트화). supervisor가 각 단계 후 채운다.
     """
 
     text: str

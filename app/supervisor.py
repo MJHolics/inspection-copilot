@@ -48,7 +48,14 @@ class Supervisor:
             res = agent.run(AgentRequest(text=text, image_path=image_path, context=ctx))
             latency = int((time.perf_counter() - t0) * 1000)
             results.append(res)
-            ctx[name] = res.data  # 다운스트림(특히 report)이 참조
+            # 다운스트림(특히 report)이 참조할 구조화 레코드. data만이 아니라 요약·신뢰도·플래그까지.
+            ctx[name] = {
+                "summary": res.summary,
+                "confidence": res.confidence,
+                "needs_human": res.needs_human,
+                "ok": res.ok,
+                "data": res.data,
+            }
             steps.append(
                 StepRecord(
                     agent=name,
