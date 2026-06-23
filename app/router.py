@@ -86,33 +86,81 @@ class RuleRouter:
         return RoutePlan(steps=_order(chosen), reason=reason, router=self.name, scores=scores)
 
 
-class LLMRouter:
-    """LLM tool-calling 라우터(P2에서 실 LLM과 결선).
+def build_routing_system(agents: dict[str, BaseAgent]) -> str:
+    """라우팅용 system 프롬프트 — 에이전트 카탈로그 + 출력 규약(JSON)."""
+    catalog = "\n".join(f"- {name}: {a.description}" for name, a in agents.items())
+    return (
+        "너는 검사 코파일럿의 라우터다. 사용자 요청을 보고 아래 에이전트 중 **필요한 것만** "
+        "실행 순서대로 고른다. 불필요한 에이전트는 넣지 마라. 여러 에이전트 결과를 종합해야 하면 "
+        "마지막에 report를 넣어라. 설명 없이 **JSON만** 출력한다: "
+        '{"steps": ["에이전트명", ...], "reason": "한 줄 근거"}\n\n'
+        f"에이전트:\n{catalog}"
+    )
 
-    서브에이전트 description을 도구 스키마로 노출하고, 모델이 호출할 도구(들)를 고르게 한다.
-    P1에서는 `llm`(JSON 계획을 돌려주는 콜러블)을 주입받아 파싱만 한다. 주입 안 되면 RuleRouter로 폴백.
+
+def build_routing_user(req: AgentRequest) -> str:
+    img = "\n[이미지가 첨부됨 — 시각 검사 필요]" if req.image_path else ""
+    return f"요청: {req.text}{img}"
+
+
+def parse_plan(text: str, agents: dict[str, BaseAgent]) -> tuple[list[str], str]:
+    """LLM 출력에서 JSON 계획을 파싱 → (알려진 에이전트로 필터된 steps, reason). 순수."""
+    import json
+    import re
+
+    m = re.search(r"\{.*\}", text, re.DOTALL)
+    if not m:
+        raise ValueError("JSON 계획을 찾지 못함")
+    data = json.loads(m.group(0))
+    steps = [s for s in data.get("steps", []) if s in agents]
+    return steps, str(data.get("reason", ""))
+
+
+class LLMRouter:
+    """실 LLM tool-calling 라우터 — 에이전트 카탈로그를 주고 모델이 경로를 고르게 한다.
+
+    `complete(system, user) -> str`(예: app.llm.LLM().complete)를 주입받아 JSON 계획을 파싱한다.
+    이미지가 있으면 vision을 강제하고, 다중 에이전트면 report 종합을 보장한다. 어떤 실패(키 없음·
+    JSON 파싱 실패·빈 계획)든 RuleRouter로 안전 폴백한다 — 라우팅이 죽지 않는다.
     """
 
     name = "llm"
 
-    def __init__(self, llm=None, fallback: RuleRouter | None = None) -> None:
-        self.llm = llm
+    def __init__(self, complete=None, fallback: RuleRouter | None = None) -> None:
+        self.complete = complete
         self.fallback = fallback or RuleRouter()
 
+    def _fallback(self, req: AgentRequest, agents: dict[str, BaseAgent], why: str) -> RoutePlan:
+        fb = self.fallback.plan(req, agents)
+        fb.reason = f"{why} → 규칙 폴백 · {fb.reason}"
+        fb.router = "llm->rule"
+        return fb
+
     def plan(self, req: AgentRequest, agents: dict[str, BaseAgent]) -> RoutePlan:
-        if self.llm is None:
-            fb = self.fallback.plan(req, agents)
-            fb.reason = "LLM 미주입 → 규칙 라우터 폴백 · " + fb.reason
-            fb.router = "llm->rule"
-            return fb
-        # TODO(P2): agents[*].tool_schema()를 함수 선언으로 LLM에 주고 tool_calls를 받아 steps 구성.
-        raw = self.llm(req.text, [a.tool_schema() for a in agents.values()])
-        steps = [s for s in raw.get("steps", []) if s in agents]
-        if not steps:
-            return self.fallback.plan(req, agents)
+        if self.complete is None:
+            return self._fallback(req, agents, "LLM 미주입")
+        try:
+            raw = self.complete(build_routing_system(agents), build_routing_user(req))
+            steps, reason = parse_plan(raw, agents)
+        except Exception as e:
+            return self._fallback(req, agents, f"LLM 라우팅 실패({type(e).__name__})")
+
         names = set(steps)
-        return RoutePlan(
-            steps=_order(names),
-            reason=raw.get("reason", "LLM tool-calling 라우팅"),
-            router=self.name,
-        )
+        if req.image_path:
+            names.add("vision")          # 이미지가 있으면 시각 검사는 항상
+        if not names:
+            return self._fallback(req, agents, "LLM이 유효 에이전트를 고르지 못함")
+        if len(names - {"report"}) >= 2:
+            names.add("report")          # 다중 → 종합 리포트 보장
+        return RoutePlan(steps=_order(names), reason=f"LLM: {reason}", router=self.name)
+
+
+def default_llm_router() -> "LLMRouter | None":
+    """키가 있으면 실 LLM 라우터를 만든다(app.llm). 키/SDK 없으면 None(→ 규칙 라우터 사용)."""
+    try:
+        from .llm import LLM
+
+        client = LLM()  # 키 없으면 여기서 예외
+        return LLMRouter(complete=lambda s, u: client.complete(s, u, temperature=0.0))
+    except Exception:
+        return None

@@ -51,17 +51,49 @@ def test_explicit_report_request():
 
 def test_llm_router_falls_back_without_llm():
     agents = default_registry()
-    plan = LLMRouter(llm=None).plan(AgentRequest(text="불량 통계 내줘"), agents)
+    plan = LLMRouter(complete=None).plan(AgentRequest(text="불량 통계 내줘"), agents)
     assert "analytics" in plan.steps
     assert plan.router == "llm->rule"
 
 
-def test_llm_router_uses_injected_plan():
+def test_llm_router_parses_json_plan():
     agents = default_registry()
 
-    def fake(text, tools):
-        return {"steps": ["knowledge", "report"], "reason": "fake"}
+    def fake(system, user):
+        return '여기 계획: {"steps": ["knowledge", "report"], "reason": "설명 질문+리포트"}'
 
-    plan = LLMRouter(llm=fake).plan(AgentRequest(text="아무거나"), agents)
+    plan = LLMRouter(complete=fake).plan(AgentRequest(text="아무거나"), agents)
     assert plan.steps == ["knowledge", "report"]
-    assert plan.router == "llm"
+    assert plan.router == "llm" and plan.reason.startswith("LLM:")
+
+
+def test_llm_router_forces_vision_on_image():
+    agents = default_registry()
+
+    def fake(system, user):  # LLM이 vision을 빠뜨려도 이미지가 있으면 강제.
+        return '{"steps": ["analytics"], "reason": "통계"}'
+
+    plan = LLMRouter(complete=fake).plan(
+        AgentRequest(text="이 사진 통계", image_path="x.jpg"), agents)
+    assert "vision" in plan.steps
+    assert plan.steps[-1] == "report"  # 다중 → 종합 보장
+
+
+def test_llm_router_falls_back_on_bad_json():
+    agents = default_registry()
+
+    def boom(system, user):
+        return "JSON 아님 그냥 횡설수설"
+
+    plan = LLMRouter(complete=boom).plan(AgentRequest(text="불량 통계"), agents)
+    assert plan.router == "llm->rule" and "analytics" in plan.steps
+
+
+def test_llm_router_falls_back_on_exception():
+    agents = default_registry()
+
+    def crash(system, user):
+        raise RuntimeError("api down")
+
+    plan = LLMRouter(complete=crash).plan(AgentRequest(text="스크래치 처리 절차"), agents)
+    assert plan.router == "llm->rule" and "knowledge" in plan.steps

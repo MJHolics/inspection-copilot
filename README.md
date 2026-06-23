@@ -45,6 +45,11 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 
 서빙·데모·배포는 [DEPLOY.md](DEPLOY.md) 참조(로컬·HF Spaces·Docker).
 
+> **라우팅**은 LLM 키가 있으면 **LLM tool-calling 라우터**(에이전트 카탈로그를 주고 모델이 필요한
+> 에이전트·순서를 JSON으로 고름, `app/router.py: LLMRouter`)를 쓰고, 키가 없거나 LLM이 실패(파싱
+> 오류·예외)하면 **결정적 규칙 라우터로 안전 폴백**한다. 어느 경로든 이미지가 있으면 vision을, 다중
+> 에이전트면 종합 report를 보장한다. 규칙 라우터·파싱·폴백은 전부 오프라인 단위테스트된다.
+
 > **Analytics** 에이전트는 합성 검사 DB(SQLite, `app/db.py`가 시드 고정으로 결정적 생성)에 대해
 > **자연어 → SQL 생성 → SELECT 전용 가드레일 → dry-run 검증 → (실패 시 1회 자기수정) → 실행 →
 > 요약**을 수행한다. SQL 생성에는 LLM 키(Gemini 무료 등)가 필요하며, 키가 없으면 안전하게
