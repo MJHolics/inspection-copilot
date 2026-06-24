@@ -57,11 +57,20 @@ def _stub_vision(image_path: str) -> list[float]:
     return probs
 
 
-def _build_supervisor(sql_llm, vision_predictor=_stub_vision) -> Supervisor:
+# dense 의미검색용 그라운딩 게이트 임계값(코사인). TF-IDF의 0.06과 스케일이 달라
+# 별도로 캘리브: 정상/동의어 질의 0.46~0.71, 오프토픽 0.18~0.31 사이에서 분리(adversarial 측정).
+DENSE_TAU = 0.40
+
+
+def _build_supervisor(sql_llm, vision_predictor=_stub_vision,
+                      knowledge_retriever=None, grounding_tau=None) -> Supervisor:
+    kn = (KnowledgeAgent(retriever=knowledge_retriever, tau=grounding_tau)
+          if grounding_tau is not None
+          else KnowledgeAgent(retriever=knowledge_retriever))
     agents = {
         "vision": VisionAgent(predictor=vision_predictor),
         "analytics": AnalyticsAgent(sql_llm=sql_llm),
-        "knowledge": KnowledgeAgent(),
+        "knowledge": kn,
         "report": ReportAgent(),
     }
     return Supervisor(agents=agents, tracer=Tracer(path="", echo=False))
@@ -92,21 +101,55 @@ def evaluate_task(sup: Supervisor, task: Task) -> CaseResult:
     )
 
 
-def run(tasks: list[Task] | None = None, sql_llm=_stub_sql) -> tuple[list[CaseResult], dict]:
-    """골든셋 평가 → (케이스별 결과, 집계 지표). DB는 결정적으로 빌드해둔다."""
+def _make_retriever(name: str):
+    """그라운딩 retriever 선택 → (retriever, tau). tfidf=경량 기본, dense=의미검색."""
+    from ..retrieval import load_corpus
+    if name == "dense":
+        from ..retrieval_vector import DenseRetriever
+        return DenseRetriever(load_corpus()), DENSE_TAU
+    return None, None  # KnowledgeAgent 기본(TF-IDF + GROUNDING_TAU)
+
+
+def run(tasks: list[Task] | None = None, sql_llm=_stub_sql,
+        retriever: str = "tfidf") -> tuple[list[CaseResult], dict]:
+    """태스크셋 평가 → (케이스별 결과, 집계 지표). DB는 결정적으로 빌드해둔다.
+
+    retriever="dense"면 Knowledge 그라운딩을 의미검색(ko-sroberta)+캘리브 tau로 돌린다.
+    """
     db.build_db()
-    sup = _build_supervisor(sql_llm)
+    kn_retriever, tau = _make_retriever(retriever)
+    sup = _build_supervisor(sql_llm, knowledge_retriever=kn_retriever, grounding_tau=tau)
     cases = [evaluate_task(sup, t) for t in (tasks or GOLDEN)]
     return cases, aggregate(cases)
 
 
+def _suite(name: str) -> list[Task]:
+    """이름으로 태스크셋 선택: golden(회귀), adversarial(약점), all(둘 다)."""
+    from .adversarial_tasks import ADVERSARIAL
+    if name == "adversarial":
+        return list(ADVERSARIAL)
+    if name == "all":
+        return [*GOLDEN, *ADVERSARIAL]
+    return list(GOLDEN)
+
+
 def _main() -> None:
-    cases, summary = run()
-    print("=== 케이스별 ===")
+    import argparse
+
+    ap = argparse.ArgumentParser(description="검사 코파일럿 Eval 러너")
+    ap.add_argument("--suite", choices=["golden", "adversarial", "all"], default="golden",
+                    help="golden=회귀 가드, adversarial=약점 스트레스, all=둘 다")
+    ap.add_argument("--retriever", choices=["tfidf", "dense"], default="tfidf",
+                    help="그라운딩 검색기: tfidf=경량 기본, dense=의미검색(동의어·오프토픽 분리)")
+    args = ap.parse_args()
+
+    tasks = _suite(args.suite)
+    cases, summary = run(tasks, retriever=args.retriever)
+    print(f"=== 케이스별 (suite={args.suite}, retriever={args.retriever}, n={len(cases)}) ===")
     for c in cases:
         g = "-" if c.grounding_correct is None else ("O" if c.grounding_correct else "X")
         print(
-            f"  {c.id:<13} route={'O' if c.route_exact else 'X'} "
+            f"  {c.id:<20} route={'O' if c.route_exact else 'X'} "
             f"gate={'O' if c.gate_correct else 'X'} ground={g} "
             f"e2e={'O' if c.e2e_success else 'X'}  ({'>'.join(c.route_pred)})"
         )

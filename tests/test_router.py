@@ -49,6 +49,28 @@ def test_explicit_report_request():
     assert "report" in plan.steps
 
 
+def test_collision_drops_weak_knowledge():
+    # 과잉 라우팅 보정: 통계 질문에 '원인'(약한 말)만으로 knowledge가 끌려오면 안 된다.
+    plan = _plan("불량 원인별 통계 추세 보여줘")
+    assert "analytics" in plan.steps
+    assert "knowledge" not in plan.steps           # 약한 말뿐 → 제외
+    plan2 = _plan("왜 자꾸 불량이 나는지 데이터로 분석해줘")
+    assert plan2.steps == ["analytics"]
+
+
+def test_collision_keeps_strong_knowledge():
+    # 정당한 멀티: 통계 + '조치/방법'(강한 절차 의도)이 함께면 knowledge를 유지한다.
+    plan = _plan("수율 낮은 라인의 결함 통계 내고 조치 방법도 알려줘")
+    assert "analytics" in plan.steps and "knowledge" in plan.steps
+    assert plan.steps[-1] == "report"              # 다중 → 종합 리포트
+
+
+def test_weak_knowledge_alone_still_routes_knowledge():
+    # 보정은 analytics가 함께일 때만. '왜'만 있고 analytics가 없으면 knowledge 정상 라우팅.
+    plan = _plan("이 결함은 왜 생겨?")
+    assert plan.steps == ["knowledge"]
+
+
 def test_llm_router_falls_back_without_llm():
     agents = default_registry()
     plan = LLMRouter(complete=None).plan(AgentRequest(text="불량 통계 내줘"), agents)

@@ -16,6 +16,10 @@ from dataclasses import dataclass, field
 
 from .agents import AGENT_ORDER, AgentRequest, BaseAgent
 
+# knowledge의 '약한' 트리거 — 통계/분석 질문에도 흔히 섞이는 말(원인·왜·이유).
+# analytics가 이미 잡혔는데 knowledge가 이것들로만 걸렸다면 과잉 라우팅으로 본다.
+WEAK_KNOWLEDGE_KEYWORDS = ("원인", "왜", "이유")
+
 
 @dataclass
 class RoutePlan:
@@ -66,6 +70,18 @@ class RuleRouter:
         # report는 명시 요청이 아니면 일단 후보에서 빼고, 종합 필요 여부로 다시 판단.
         report_requested = "report" in chosen
         chosen.discard("report")
+
+        # 키워드 충돌 보정(과잉 라우팅 방지): analytics가 잡힌 상태에서 knowledge가 '약한 말'
+        # (원인/왜/이유)로만 끌려왔다면, 그건 통계 질문의 수식어일 뿐이므로 knowledge를 뺀다.
+        # '처리/조치/방법/절차' 같은 강한 절차 의도가 함께 있으면 정당한 멀티로 보고 유지한다.
+        # 예) "불량 원인별 통계 추세"=analytics only / "통계 내고 조치 방법도"=analytics+knowledge.
+        if {"analytics", "knowledge"} <= chosen:
+            kkw = agents["knowledge"].keywords
+            strong_knowledge = any(
+                k.lower() in text for k in kkw if k not in WEAK_KNOWLEDGE_KEYWORDS
+            )
+            if not strong_knowledge:
+                chosen.discard("knowledge")
 
         if not chosen:
             chosen = {"knowledge"}
