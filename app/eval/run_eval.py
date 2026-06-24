@@ -57,11 +57,6 @@ def _stub_vision(image_path: str) -> list[float]:
     return probs
 
 
-# dense 의미검색용 그라운딩 게이트 임계값(코사인). TF-IDF의 0.06과 스케일이 달라
-# 별도로 캘리브: 정상/동의어 질의 0.46~0.71, 오프토픽 0.18~0.31 사이에서 분리(adversarial 측정).
-DENSE_TAU = 0.40
-
-
 def _build_supervisor(sql_llm, vision_predictor=_stub_vision,
                       knowledge_retriever=None, grounding_tau=None) -> Supervisor:
     kn = (KnowledgeAgent(retriever=knowledge_retriever, tau=grounding_tau)
@@ -101,23 +96,16 @@ def evaluate_task(sup: Supervisor, task: Task) -> CaseResult:
     )
 
 
-def _make_retriever(name: str):
-    """그라운딩 retriever 선택 → (retriever, tau). tfidf=경량 기본, dense=의미검색."""
-    from ..retrieval import load_corpus
-    if name == "dense":
-        from ..retrieval_vector import DenseRetriever
-        return DenseRetriever(load_corpus()), DENSE_TAU
-    return None, None  # KnowledgeAgent 기본(TF-IDF + GROUNDING_TAU)
-
-
 def run(tasks: list[Task] | None = None, sql_llm=_stub_sql,
         retriever: str = "tfidf") -> tuple[list[CaseResult], dict]:
     """태스크셋 평가 → (케이스별 결과, 집계 지표). DB는 결정적으로 빌드해둔다.
 
     retriever="dense"면 Knowledge 그라운딩을 의미검색(ko-sroberta)+캘리브 tau로 돌린다.
     """
+    from ..retrieval import make_grounding_retriever
+
     db.build_db()
-    kn_retriever, tau = _make_retriever(retriever)
+    kn_retriever, tau = make_grounding_retriever(retriever)  # service와 동일 팩토리
     sup = _build_supervisor(sql_llm, knowledge_retriever=kn_retriever, grounding_tau=tau)
     cases = [evaluate_task(sup, t) for t in (tasks or GOLDEN)]
     return cases, aggregate(cases)

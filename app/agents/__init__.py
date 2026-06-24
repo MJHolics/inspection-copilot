@@ -11,16 +11,22 @@ from .vision import VisionAgent
 AGENT_ORDER: tuple[str, ...] = ("vision", "analytics", "knowledge", "report")
 
 
-def default_registry(vision_predictor=None) -> dict[str, BaseAgent]:
+def default_registry(vision_predictor=None, knowledge_retriever=None,
+                     grounding_tau=None) -> dict[str, BaseAgent]:
     """기본 4개 에이전트 레지스트리(이름 → 인스턴스).
 
     vision_predictor를 주면 Vision이 실제 추론한다(없으면 안전 멈춤). 라이브러리/테스트는
     가볍게 None 기본, 데모·서빙은 service에서 실 ONNX predictor를 주입한다.
+    knowledge_retriever/grounding_tau를 주면 그라운딩 검색기를 교체한다(예: dense 의미검색).
+    둘 다 None이면 KnowledgeAgent의 경량 기본(TF-IDF)을 쓴다.
     """
+    knowledge = (KnowledgeAgent(retriever=knowledge_retriever, tau=grounding_tau)
+                 if grounding_tau is not None
+                 else KnowledgeAgent(retriever=knowledge_retriever))
     agents: list[BaseAgent] = [
         VisionAgent(predictor=vision_predictor),
         AnalyticsAgent(),
-        KnowledgeAgent(),
+        knowledge,
         ReportAgent(),
     ]
     return {a.name: a for a in agents}

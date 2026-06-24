@@ -27,9 +27,13 @@ def run_inspection(question: str, image):
         return "질문을 입력하세요.", "", ""
     res = get_supervisor().handle(question, image_path=image)
 
+    from app import config
+
     badge = "⚠️ 사람 검토 필요" if res.needs_human else "✅ 자동 판정"
     route = " → ".join(res.plan.steps)
-    header = f"### {badge}\n**라우팅:** `{route}`  \n_{res.plan.reason}_"
+    grounding = "의미검색(dense)" if config.GROUNDING_RETRIEVER == "dense" else "어휘검색(TF-IDF)"
+    header = (f"### {badge}\n**라우팅:** `{route}`  \n"
+              f"**그라운딩:** {grounding}  \n_{res.plan.reason}_")
 
     lines = []
     for r in res.results:

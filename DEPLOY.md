@@ -11,8 +11,12 @@ uvicorn app.server:app --host 0.0.0.0 --port 8000  # FastAPI 서빙(/health /ins
 LLM 키가 있으면 Analytics가 실제 SQL을 생성·실행한다(없어도 Knowledge·Report·라우팅·트레이싱은 동작):
 
 ```bash
-export GEMINI_API_KEY=...   # 무료: https://aistudio.google.com/app/apikey
+export GEMINI_API_KEY=...        # 무료: https://aistudio.google.com/app/apikey
+export GROUNDING_RETRIEVER=dense # 선택: 의미검색(동의어·다국어). 기본 tfidf(경량, 무의존)
 ```
+
+> HF Spaces 무료 배포는 기본 `tfidf`(경량)를 권장한다. `dense`는 sentence-transformers·임베딩
+> 모델이 필요해 빌드가 무거워지므로, 의미검색이 필요한 환경에서만 켠다.
 
 ## Hugging Face Spaces (gradio SDK, 무료 — 권장)
 

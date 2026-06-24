@@ -1,7 +1,7 @@
 """검색 베이스라인 테스트 — 코퍼스 로드 + TF-IDF 코사인 관련성. 오프라인."""
 from __future__ import annotations
 
-from app.retrieval import Chunk, KeywordRetriever, load_corpus, tokenize
+from app.retrieval import Chunk, KeywordRetriever, load_corpus, make_grounding_retriever, tokenize
 
 
 def test_tokenize_drops_single_korean():
@@ -34,3 +34,16 @@ def test_identical_text_high_similarity():
     r = KeywordRetriever([c, Chunk("y", "t2", "전혀 다른 내용 데이터", tokenize("전혀 다른 내용 데이터"))])
     hits = r.search("압연 온도 냉각 균열")
     assert hits[0].chunk.source == "x" and hits[0].score > 0.9
+
+
+def test_grounding_factory_tfidf_is_lightweight():
+    # tfidf(기본)는 (None, None) → KnowledgeAgent 경량 기본 사용, 무거운 import 없음.
+    retriever, tau = make_grounding_retriever("tfidf")
+    assert retriever is None and tau is None
+
+
+def test_grounding_factory_follows_config(monkeypatch):
+    # name 미지정이면 config.GROUNDING_RETRIEVER를 따른다(기본 tfidf).
+    import app.config as cfg
+    monkeypatch.setattr(cfg, "GROUNDING_RETRIEVER", "tfidf", raising=False)
+    assert make_grounding_retriever() == (None, None)

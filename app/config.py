@@ -37,3 +37,11 @@ DEFECT_CLASSES: list[str] = [
 # --- 트레이싱 ---
 TRACE_FILE: str = os.getenv("TRACE_FILE", "")  # 비우면 stdout만
 TRACE_ECHO: bool = os.getenv("TRACE_ECHO", "1") != "0"
+
+# --- 그라운딩 검색기 ---
+# tfidf = 경량 어휘검색(기본, HF Spaces 무의존). dense = 의미검색(ko-sroberta) — 동의어·
+# 다국어·오프토픽을 분리(adversarial eval 실측). dense는 sentence-transformers 설치 필요.
+GROUNDING_RETRIEVER: str = os.getenv("GROUNDING_RETRIEVER", "tfidf")  # tfidf | dense
+GROUNDING_DENSE_MODEL: str = os.getenv("GROUNDING_DENSE_MODEL", "jhgan/ko-sroberta-multitask")
+# dense 코사인 임계(캘리브): 정상/동의어 0.46~0.71, 오프토픽 0.18~0.31 사이에서 분리.
+GROUNDING_DENSE_TAU: float = float(os.getenv("GROUNDING_DENSE_TAU", "0.40"))

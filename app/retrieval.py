@@ -50,6 +50,24 @@ def load_corpus(docs_dir: str = DOCS_DIR) -> list[Chunk]:
     return chunks
 
 
+def make_grounding_retriever(name: str | None = None):
+    """그라운딩 retriever 팩토리 → (retriever | None, tau | None).
+
+    name=None이면 config.GROUNDING_RETRIEVER를 따른다. tfidf는 (None, None)을 줘서
+    KnowledgeAgent의 경량 기본(TF-IDF + GROUNDING_TAU)을 그대로 쓰게 한다. dense는 의미검색
+    + 캘리브 tau를 돌려준다(무거운 sentence-transformers import는 이 경로에서만 발생).
+    eval과 service가 같은 팩토리를 써 동작이 갈리지 않는다.
+    """
+    from . import config
+
+    name = name or config.GROUNDING_RETRIEVER
+    if name == "dense":
+        from .retrieval_vector import DenseRetriever
+        return DenseRetriever(load_corpus(), model_name=config.GROUNDING_DENSE_MODEL), \
+            config.GROUNDING_DENSE_TAU
+    return None, None
+
+
 @dataclass
 class Hit:
     chunk: Chunk

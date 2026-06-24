@@ -8,13 +8,19 @@ _sup: Supervisor | None = None
 
 
 def get_supervisor() -> Supervisor:
-    """데모·서빙용 supervisor — 가능하면 실 ONNX 비전 모델을 주입(없으면 안전 멈춤)."""
+    """데모·서빙용 supervisor — 가능하면 실 ONNX 비전 모델을 주입(없으면 안전 멈춤).
+
+    그라운딩 검색기는 config.GROUNDING_RETRIEVER로 선택(tfidf 기본 / dense 의미검색).
+    """
     global _sup
     if _sup is None:
+        from .retrieval import make_grounding_retriever
         from .router import default_llm_router
         from .vision_model import load_default_predictor
 
-        agents = default_registry(vision_predictor=load_default_predictor())
+        kn_retriever, tau = make_grounding_retriever()  # config 기반(tfidf | dense)
+        agents = default_registry(vision_predictor=load_default_predictor(),
+                                  knowledge_retriever=kn_retriever, grounding_tau=tau)
         # 키가 있으면 실 LLM 라우터, 없으면 Supervisor 기본(RuleRouter)으로 자동 폴백.
         _sup = Supervisor(agents=agents, router=default_llm_router())
     return _sup
@@ -22,6 +28,8 @@ def get_supervisor() -> Supervisor:
 
 def result_to_dict(res) -> dict:
     """SupervisorResult → JSON 직렬화 가능한 dict(서버 응답·데모 공용)."""
+    from . import config
+
     return {
         "answer": res.answer,
         "ok": res.ok,
@@ -29,6 +37,7 @@ def result_to_dict(res) -> dict:
         "route": res.plan.steps,
         "router": res.plan.router,
         "reason": res.plan.reason,
+        "grounding_retriever": config.GROUNDING_RETRIEVER,  # 데모 배지: 어휘(tfidf) vs 의미(dense)
         "agents": [
             {
                 "agent": r.agent,

@@ -149,6 +149,15 @@ Knowledge의 retriever는 교체 가능하다. 검색 평가셋(`app/eval/retrie
 `python -m app.eval.retrieval_eval`로 재현(dense는 sentence-transformers 설치 시, 미설치면
 TF-IDF만). 한국어 임베딩 모델은 `DenseRetriever(model_name=...)`로 BGE-M3 등으로 교체 가능.
 
+**런타임 토글**: 데모·서버·CLI도 환경변수로 검색기를 고른다 — `GROUNDING_RETRIEVER=dense`(기본
+`tfidf`). eval과 service가 **동일 팩토리**(`app.retrieval.make_grounding_retriever`)를 써 측정과
+운영이 갈리지 않는다. 데모는 활성 검색기를 배지로 표시한다. 기본은 경량 TF-IDF로 HF Spaces 무의존
+배포를 유지하고, dense는 sentence-transformers가 있는 환경에서 켜는 측정된 옵션이다.
+
+```bash
+GROUNDING_RETRIEVER=dense python demo.py      # 의미검색으로 데모 실행
+```
+
 ## 상태
 
 | Phase | 내용 | 상태 |
