@@ -1,3 +1,14 @@
+---
+title: Inspection Copilot
+emoji: 🔎
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+app_file: demo.py
+pinned: false
+short_description: 제조/의료 검사용 검증가능 멀티에이전트 코파일럿
+---
+
 # Inspection Copilot — 멀티에이전트 품질 검사 코파일럿
 
 [![ci](https://github.com/MJHolics/inspection-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/MJHolics/inspection-copilot/actions/workflows/ci.yml)
