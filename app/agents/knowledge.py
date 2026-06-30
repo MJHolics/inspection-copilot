@@ -9,6 +9,7 @@ retriever도 주입 가능 — 기본은 TF-IDF 베이스라인, 벡터(BGE-M3/C
 """
 from __future__ import annotations
 
+from ..guard import is_injection, is_off_domain
 from ..retrieval import KeywordRetriever, load_corpus
 from .base import AgentRequest, AgentResult, BaseAgent, Evidence
 
@@ -32,11 +33,14 @@ class KnowledgeAgent(BaseAgent):
         "sop", "spec", "standard", "guideline", "이유", "방법", "설명",
     )
 
-    def __init__(self, retriever=None, llm=None, k: int = 3, tau: float = GROUNDING_TAU) -> None:
+    def __init__(self, retriever=None, llm=None, k: int = 3, tau: float = GROUNDING_TAU,
+                 relevance_llm=None) -> None:
         self._retriever = retriever  # None이면 첫 호출 때 코퍼스로 빌드
         self._llm = llm
         self.k = k
         self.tau = tau
+        # 관련성/인젝션 가드(검색 거리와 직교). relevance_llm을 주면 LLM 판정도 켠다.
+        self._relevance_llm = relevance_llm
 
     def _get_retriever(self):
         if self._retriever is None:
@@ -44,6 +48,16 @@ class KnowledgeAgent(BaseAgent):
         return self._retriever
 
     def run(self, req: AgentRequest) -> AgentResult:
+        # 관련성/인젝션 가드: 검색 거리와 직교한다. 인젝션(또는 LLM이 오프토픽 판정)이면
+        # 검색 점수가 아무리 높아도 그라운딩하지 않고 멈춘다(needs_human).
+        if is_injection(req.text) or is_off_domain(req.text, self._relevance_llm):
+            return AgentResult(
+                agent=self.name, ok=True,
+                summary="질의가 검사 도메인과 무관하거나 안전하지 않아 멈춥니다(사람 검토 필요).",
+                evidence=[], confidence=0.0, needs_human=True,
+                data={"grounded": False, "blocked_by": "relevance_guard"},
+            )
+
         retriever = self._get_retriever()
         hits = retriever.search(req.text, k=self.k)
         top = hits[0].score if hits else 0.0

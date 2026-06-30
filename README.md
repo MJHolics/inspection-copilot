@@ -1,12 +1,12 @@
 ---
-title: Inspection Copilot
-emoji: 🔎
+title: InspectOps — 검사 운영 플랫폼
+emoji: 🏭
 colorFrom: blue
 colorTo: indigo
 sdk: gradio
-app_file: demo.py
+app_file: inspectops.py
 pinned: false
-short_description: 제조/의료 검사용 검증가능 멀티에이전트 코파일럿
+short_description: 검증가능한 제조/의료 검사 운영 플랫폼(코파일럿·모니터링·자가개선·관측성)
 ---
 
 # Inspection Copilot — 멀티에이전트 품질 검사 코파일럿
@@ -14,11 +14,15 @@ short_description: 제조/의료 검사용 검증가능 멀티에이전트 코�
 [![ci](https://github.com/MJHolics/inspection-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/MJHolics/inspection-copilot/actions/workflows/ci.yml)
 [![🤗 Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HF_Spaces-yellow)](https://huggingface.co/spaces/appleholics/inspection-copilot)
 
-▶ **[라이브 데모 (Hugging Face Spaces)](https://huggingface.co/spaces/appleholics/inspection-copilot)** — 검사 질문을 입력하거나 결함 이미지를 올리면, supervisor가 동적으로 라우팅해 근거와 함께 답합니다(CPU·무료).
+▶ **[라이브 데모 (Hugging Face Spaces)](https://huggingface.co/spaces/appleholics/inspection-copilot)** — **통합 제품 UI(`inspectops.py`)**: 네 개 탭으로 검사 코파일럿 · 라인 모니터링 · 자가개선 루프 · 운영 대시보드를 한 화면에서 돌립니다(CPU·무료·키 불요). 코파일럿 단일 화면은 `python demo.py`.
 
 > 제조/의료 검사 현장을 위한 **검증 가능한 멀티에이전트 시스템**. 검사자가 자연어로 묻거나
 > 이미지를 올리면, supervisor 에이전트가 의도를 파악해 전문 에이전트(비전·분석·지식·리포트)로
 > **동적 라우팅**하고 근거와 함께 답한다.
+
+> **이 레포는 더 큰 제품의 런타임 코어다** — 흩어진 검사 프로젝트들을 하나의 "검증 가능한 제조·의료
+> 검사 운영 플랫폼(InspectOps)"으로 묶는 상위 서사·모듈맵은 [PRODUCT.md](PRODUCT.md), 통합 e2e 시연은
+> `python scenario.py`(오프라인·결정적).
 
 설계 배경·단계 계획은 [PLAN.md](PLAN.md), 배포는 [DEPLOY.md](DEPLOY.md) 참조.
 
@@ -53,7 +57,8 @@ python -m pytest -q          # 오프라인 단위테스트(LLM·네트워크 �
 python -m app.trace traces/trace.jsonl   # 트레이스 요약 지표
 python -m app.eval.run_eval  # 골든셋 평가 지표(라우팅·그라운딩·게이트·e2e)
 
-python demo.py                                      # gradio 데모 → localhost:7860
+python inspectops.py                                # ★ 통합 제품 UI(4탭) → localhost:7860 · HF Spaces 진입점
+python demo.py                                      # 코파일럿 단일 화면 데모 → localhost:7860
 uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /inspect /eval)
 ```
 
@@ -89,6 +94,23 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 
 요청마다 supervisor가 의도를 파악해 서로 다른 에이전트 조합·순서로 라우팅하고(고정 체인 ❌),
 각 단계를 트레이싱하며, 어느 에이전트든 신뢰도가 낮으면 전체를 사람검토로 멈춘다.
+
+## MCP 서버 — 검사 도구를 Model Context Protocol로 노출
+
+코파일럿의 **검증된 도구**(SOP 검색·인젝션 가드·SQL 검증)를 MCP 표준으로 내보내, 어떤 MCP
+클라이언트(Claude Desktop·IDE 등)에서도 호출할 수 있다. 핵심은 **검증 척추가 도구에 함께 실린다**는
+점 — `search_inspection_sop`는 인젝션 가드 + 근거 거리 게이트를 통과 못 하면 `needs_human`을 돌려준다.
+
+```bash
+python mcp_server.py     # stdio 전송 (도구: check_prompt_injection · search_inspection_sop · validate_sql)
+```
+
+MCP 클라이언트(예: Claude Desktop) 등록 예시:
+```json
+{ "mcpServers": { "inspectops": { "command": "python", "args": ["mcp_server.py"] } } }
+```
+도구 로직은 코파일럿의 기존 테스트된 순수 모듈(`app/guard`·`app/retrieval`·`app/sqlutils`)을 재사용하며,
+도구 등록·실호출(`call_tool`)을 단위테스트한다(`tests/test_mcp_server.py`).
 
 ## 한 줄 요약
 
@@ -127,7 +149,8 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 |---|---|---|---|---|---|
 | TF-IDF (수정 전) | 0.80 | 0.60 | 0.00 | 0.50 | 과잉 라우팅·가드레일 구멍·동의어/다국어 갭 |
 | + 라우터 충돌 보정 | **1.00** | 0.69 | 0.00 | 0.69 | 과잉 라우팅 해소 |
-| **+ dense 그라운딩** | **1.00** | **0.92** | **1.00** | **0.92** | 가드레일·동의어·다국어 해결, 인젝션 1건 잔존 |
+| + dense 그라운딩 | **1.00** | 0.92 | **1.00** | 0.92 | 가드레일·동의어·다국어 해결, 인젝션 1건 잔존 |
+| **+ 관련성/인젝션 가드** | **1.00** | **1.00** | **1.00** | **1.00** | 잔존 인젝션까지 차단(거리와 직교) — 동의어·다국어 불변 |
 
 - **과잉 라우팅(routing)** — "불량 *원인*별 *통계* 추세"처럼 analytics 질문에 '원인/왜'(약한 말)가
   섞이면 knowledge가 끌려와 무관 SOP에 그라운딩됐다. 라우터에 충돌 보정을 넣어(약한 말뿐이면 제외,
@@ -140,12 +163,14 @@ uvicorn app.server:app --port 8000                 # FastAPI 서빙(/health /ins
 - **해법 = 의미검색.** dense(ko-sroberta)는 오프토픽 "스크래치 영화"를 0.31로, 정상·동의어·영문을
   0.46~0.71로 분리해 캘리브 임계(0.40) 하나로 가드레일·동의어·다국어를 해결한다 — 적대적 e2e
   `0.50 → 0.92`. 데모 기본은 경량 TF-IDF, dense는 측정된 프로덕션 옵션이다(`--retriever dense`).
-- **정직한 잔존 갭 — 검색 거리는 안전장치가 아니다.** 영문 프롬프트 인젝션("Ignore all previous
+- **검색 거리는 안전장치가 아니다 → 직교 가드로 닫았다.** 영문 프롬프트 인젝션("Ignore all previous
   instructions…")이 dense에서 crazing SOP에 **0.42**(임계 0.40 바로 위)로 우연히 임베딩돼 게이트를
-  통과한다. TF-IDF는 한글 코퍼스를 못 맞춰 *우연히* 멈췄지만, 의미검색은 적대적 문장이 SOP 근처에
-  떨어지면 막지 못한다. 임계를 올리면 동의어(0.46)가 깨진다 — 즉 **거리 하나로는 '관련 없음'과
-  '적대적이지만 유사함'을 못 가른다.** 다음 단계는 retrieval 위에 **전용 인젝션/관련성 가드(LLM 판정)**
-  를 한 겹 더 두는 것이다(드러내고, 방향을 제시).
+  통과했다. 임계를 올리면 동의어(0.46)가 깨진다 — **거리 하나로는 '관련 없음'과 '적대적이지만 유사함'을
+  못 가른다.** 그래서 검색 점수와 **직교하는** 관련성/인젝션 가드(`app/guard.py`)를 retrieval 위에 한 겹
+  더 뒀다: 질의의 *의도*를 보고(다국어 인젝션 패턴 룰 + 선택적 LLM 도메인 판정) 인젝션이면 검색 점수와
+  무관하게 멈춘다. 결과 — 적대적 **gate 0.92→1.00, e2e 0.92→1.00**, 그리고 동의어·다국어 정상 질의는
+  **그대로 그라운딩**(grounding 1.00 유지). 룰 가드는 순수·오프라인 단위테스트되고(`test_guard.py`:
+  인젝션 차단 ∧ 정상 질의 불통과 불변식), 골든셋은 1.00을 유지한다(회귀 가드).
 
 `python -m app.eval.run_eval --suite adversarial [--retriever dense]`로 재현(13 태스크).
 
