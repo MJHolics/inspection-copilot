@@ -16,6 +16,8 @@ short_description: 검증가능한 제조/의료 검사 운영 플랫폼(코파�
 
 ▶ **[라이브 데모 (Hugging Face Spaces)](https://huggingface.co/spaces/appleholics/inspection-copilot)** — **통합 제품 UI(`inspectops.py`)**: 네 개 탭으로 검사 코파일럿 · 라인 모니터링 · 자가개선 루프 · 운영 대시보드를 한 화면에서 돌립니다(CPU·무료·키 불요). 코파일럿 단일 화면은 `python demo.py`.
 
+![InspectOps 통합 제품 UI — 4탭(코파일럿·라인 모니터링·자가개선·운영 대시보드), 예제 프리셋 포함](docs/img/inspectops_ui.png)
+
 > 제조/의료 검사 현장을 위한 **검증 가능한 멀티에이전트 시스템**. 검사자가 자연어로 묻거나
 > 이미지를 올리면, supervisor 에이전트가 의도를 파악해 전문 에이전트(비전·분석·지식·리포트)로
 > **동적 라우팅**하고 근거와 함께 답한다.
