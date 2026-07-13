@@ -56,10 +56,47 @@ _GENERALIZED_PATTERNS = (
 )
 _RE = re.compile("|".join(_INJECTION_PATTERNS + _GENERALIZED_PATTERNS), re.IGNORECASE)
 
+# ── 정규화 방어(2026-07 보강) ─────────────────────────────────────────────
+# 동기: 자체 레드팀 하네스(llm-redteam)의 **자동 최적화 공격**(GCG-greedy·PAIR-refine)이
+# 위 정적 패턴을 leetspeak("1gn0r3 pr3v10u5")·제로폭 삽입·문자분리로 우회함(GCG 7질의, PAIR 2질의).
+# 정규식은 표면형에 취약한데 피해 LLM은 난독화를 정규화해 *의도*는 이해하는 비대칭이 근본 원인.
+# → 가드도 **피해 LLM과 같은 수준으로 정규화한 뒤** 매칭한다. 원문/정규화형 둘 다에 룰을 적용해
+#   원문 정밀도(과차단 0%)는 유지하면서 난독화 우회를 닫는다.
+_ZERO_WIDTH = re.compile(r"[​‌‍⁠﻿]")
+_LEET_MAP = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "@": "a", "$": "s", "|": "l"})
+
+# 난독화 불변(공백·비단어 제거) intent 패턴 — 정규화 squeeze형에만 적용(고정밀).
+_SQUEEZE_PATTERNS = (
+    r"ignore.{0,12}(instruction|prompt|rule|everything)",
+    r"disregard.{0,12}(instruction|prompt|rule)",
+    r"reveal.{0,12}(systemprompt|instruction|apikey|systeminstruction)",
+    r"(print|show|output).{0,12}(systemprompt|instruction)",
+    r"systemprompt",
+    r"youare(now|goingtoactas)?dan",
+    r"actasdan",
+    r"지시.{0,6}무시",
+    r"규칙.{0,6}무시",
+    r"시스템프롬프트",
+)
+_SQUEEZE_RE = re.compile("|".join(_SQUEEZE_PATTERNS), re.IGNORECASE)
+
+
+def _canonicalize(text: str) -> str:
+    """피해 LLM이 이해하는 수준으로 표면형을 복원(제로폭 제거·de-leet·비단어 squeeze·소문자)."""
+    t = _ZERO_WIDTH.sub("", text or "")
+    t = t.translate(_LEET_MAP)
+    return re.sub(r"[\W_]+", "", t).lower()   # 공백·기호 전부 제거 → 문자분리/과다공백 우회 무력화
+
 
 def is_injection(text: str) -> bool:
-    """질의가 프롬프트 인젝션/시스템 탈취 시도인지(결정적, 다국어). 검색 점수와 무관."""
-    return bool(_RE.search(text or ""))
+    """질의가 프롬프트 인젝션/시스템 탈취 시도인지(결정적, 다국어). 검색 점수와 무관.
+
+    원문 패턴(_RE, 정밀) + 정규화형 패턴(_SQUEEZE_RE, 난독화 불변) 이중 매칭. 자동 최적화
+    공격(leet·제로폭·문자분리)이 원문 정규식을 비껴가도 정규화형에서 잡는다. 정상 질의는
+    두 형태 모두에서 이 고정밀 intent가 없어 과차단 0% 유지(단위테스트로 강제).
+    """
+    raw = text or ""
+    return bool(_RE.search(raw) or _SQUEEZE_RE.search(_canonicalize(raw)))
 
 
 def scan_context(texts) -> list[int]:
