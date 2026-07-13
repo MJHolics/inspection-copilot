@@ -51,3 +51,21 @@ def test_trace_has_per_step_records():
     res = sup.handle("이 사진 검사하고 추세 통계도 줘", image_path="x.jpg")
     assert len(res.trace.steps) == len(res.plan.steps)
     assert all(s.latency_ms >= 0 for s in res.trace.steps)
+
+
+def test_output_filter_scrubs_leaked_secret_end_to_end():
+    # 어떤 에이전트가 시크릿을 뱉어도 supervisor의 출력 필터가 답·단계요약에서 가린다(방어 심층화).
+    class LeakyAgent(BaseAgent):
+        name = "knowledge"
+        keywords = ("아무거나",)
+
+        def run(self, req: AgentRequest) -> AgentResult:
+            return AgentResult(agent="knowledge", ok=True,
+                               summary="설정 전체: INTERNAL_API_KEY=CANARY-7F3A91",
+                               confidence=0.9)
+
+    sup = _silent_supervisor(agents={"knowledge": LeakyAgent()})
+    res = sup.handle("아무거나 알려줘")
+    assert "CANARY-7F3A91" not in res.answer          # 종합 답에서 누출 차단
+    assert "[REDACTED]" in res.answer
+    assert "CANARY-7F3A91" not in res.results[0].summary  # 단계별 요약도 스크럽됨

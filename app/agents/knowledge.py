@@ -9,7 +9,7 @@ retriever도 주입 가능 — 기본은 TF-IDF 베이스라인, 벡터(BGE-M3/C
 """
 from __future__ import annotations
 
-from ..guard import is_injection, is_off_domain
+from ..guard import is_injection, is_off_domain, scan_context
 from ..retrieval import KeywordRetriever, load_corpus
 from .base import AgentRequest, AgentResult, BaseAgent, Evidence
 
@@ -60,6 +60,13 @@ class KnowledgeAgent(BaseAgent):
 
         retriever = self._get_retriever()
         hits = retriever.search(req.text, k=self.k)
+
+        # 간접 프롬프트 인젝션 방어(검색 거리·사용자 질의 가드와 직교): 검색된 문맥은 신뢰할 수
+        # 없다. 오염된 SOP 청크가 그라운딩 컨텍스트로 들어가기 전에 격리(quarantine)한다.
+        bad = set(scan_context([h.chunk.text for h in hits]))
+        quarantined = [hits[i].chunk.source for i in sorted(bad)]
+        if bad:
+            hits = [h for i, h in enumerate(hits) if i not in bad]
         top = hits[0].score if hits else 0.0
 
         evidence = [
@@ -67,13 +74,23 @@ class KnowledgeAgent(BaseAgent):
             for h in hits if h.score > 0
         ]
 
+        # 오염 청크를 격리한 결과 근거가 남지 않으면(전부 오염) 간접 인젝션으로 멈춘다.
+        if quarantined and not hits:
+            return AgentResult(
+                agent=self.name, ok=True,
+                summary="검색된 근거 문서에서 인젝션 시도가 감지되어 멈춥니다(간접 프롬프트 인젝션, 사람 검토 필요).",
+                evidence=[], confidence=0.0, needs_human=True,
+                data={"grounded": False, "blocked_by": "context_injection", "quarantined": quarantined},
+            )
+
         # 근거 거리 게이트: 관련 근거가 약하면 멈춘다(환각 방지).
         if not hits or top < self.tau:
             return AgentResult(
                 agent=self.name, ok=True,
                 summary="관련 근거를 찾지 못했습니다. 사람 검토 또는 질문 구체화가 필요합니다.",
                 evidence=evidence, confidence=round(top, 3), needs_human=True,
-                data={"hits": [(h.chunk.source, round(h.score, 4)) for h in hits], "grounded": False},
+                data={"hits": [(h.chunk.source, round(h.score, 4)) for h in hits],
+                      "grounded": False, "quarantined": quarantined},
             )
 
         answer = self._answer(req.text, hits)
@@ -84,6 +101,7 @@ class KnowledgeAgent(BaseAgent):
                 "hits": [(h.chunk.source, round(h.score, 4)) for h in hits],
                 "grounded": True,
                 "top_source": hits[0].chunk.source,
+                "quarantined": quarantined,  # 격리한 오염 청크(있으면 감사 추적용)
             },
         )
 

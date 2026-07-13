@@ -11,6 +11,7 @@ import time
 from dataclasses import dataclass, field
 
 from .agents import AgentRequest, AgentResult, BaseAgent, default_registry
+from .guard import redact_secrets
 from .router import RoutePlan, RuleRouter
 from .trace import RequestTrace, StepRecord, Tracer, now_iso
 
@@ -47,6 +48,8 @@ class Supervisor:
             t0 = time.perf_counter()
             res = agent.run(AgentRequest(text=text, image_path=image_path, context=ctx))
             latency = int((time.perf_counter() - t0) * 1000)
+            # 출력측 방어선(직교): 어떤 에이전트든 응답에 시크릿이 실리면 나가기 전에 가린다.
+            res.summary = redact_secrets(res.summary)
             results.append(res)
             # 다운스트림(특히 report)이 참조할 구조화 레코드. data만이 아니라 요약·신뢰도·플래그까지.
             ctx[name] = {
@@ -70,7 +73,8 @@ class Supervisor:
         total_latency = int((time.perf_counter() - t_start) * 1000)
         needs_human = any(r.needs_human for r in results)
         ok = all(r.ok for r in results)
-        answer = self._synthesize(plan, results, needs_human)
+        # 이미 단계별 summary를 가렸지만, 종합 답도 한 번 더 스크럽(방어 심층화).
+        answer = redact_secrets(self._synthesize(plan, results, needs_human))
 
         trace = RequestTrace(
             ts=now_iso(),

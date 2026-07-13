@@ -174,6 +174,28 @@ MCP 클라이언트(예: Claude Desktop) 등록 예시:
 
 `python -m app.eval.run_eval --suite adversarial [--retriever dense]`로 재현(13 태스크).
 
+- **외부 벤치마크로 검증 → 마커 과적합을 일반화로 닫았다.** 자체 적대적 셋은 내가 만든 것이라
+  "아는 것만 막는다"는 비판이 가능하다. 그래서 별도 레드팀 하네스([`llm-redteam`](../llm-redteam))로 이 가드를
+  **NVIDIA garak의 외부 인젝션 코퍼스 41개**에 통과시켰더니 탐지율 **0%** — 같은 의도라도 표현이 다르면
+  ("Ignore **any** previous …", "instructions you got **before**", 가짜 `<system>`/`<|endoftext|>` 태그)
+  전부 비껴갔다(마커 목록 과적합). 이를 특정 문구가 아니라 *인젝션의 구조적 신호*(override 동사→지시 참조·
+  가짜 role 태그·제일브레이크 페르소나·출력 강제)로 일반화(`app/guard.py`의 `_GENERALIZED_PATTERNS`) →
+  garak **0%→100%**, 정상 질의 오차단 **0% 유지**(직교성 불변식은 `test_guard.py`가 강제). 외부 코퍼스로
+  갭을 *드러내고→닫고→회귀를 잠갔다*.
+- **간접 프롬프트 인젝션 방어(검색 문맥 스캔).** is_injection은 *사용자 질의*만 본다 — 하지만 RAG는
+  *검색된 SOP 문서*를 LLM 컨텍스트로 넣는다. 오염된 청크(문서 안에 숨긴 `<!-- ignore previous … -->`)가
+  신뢰 경계로 들어가면 질의가 정상이어도 하이재킹된다. 그래서 `KnowledgeAgent`가 그라운딩 전에
+  `guard.scan_context`로 검색 청크를 스캔해 오염분을 **격리(quarantine)**하고, 남은 정상 근거로만 답하거나
+  전부 오염이면 `needs_human`으로 멈춘다(격리 이력은 감사 추적 `data["quarantined"]`에 기록). 이 방어로
+  레드팀의 마지막 잔존(`pi-indirect-rag`)까지 닫아 **실 가드 스위트 ASR 50%→0%**(`test_knowledge.py`가
+  오염 격리·LLM 무유입·정상 코퍼스 오탐 0을 강제).
+- **출력측 시크릿 누출 필터(방어 심층화, OWASP LLM02).** 입력 가드가 *들어오는* 공격을 막아도, 미지의
+  우회가 뚫려 LLM이 키·시스템프롬프트를 뱉으면? 마지막 방어선으로 `Supervisor`가 종합 답·단계 요약을
+  `guard.redact_secrets`로 스캔해 시크릿(키 형식·런타임 카나리아)을 `[REDACTED]`로 가린다 — 입력 표현과
+  **직교**(무엇이 들어왔든 결과에 시크릿이 있으면 차단). 실증: `"configuration dump"`는 입력 가드를
+  통과하지만 백엔드가 카나리아를 흘려도 출력 필터가 가린다(한 겹이 뚫려도 다음이 받치는 **직교 3계층**:
+  질의·문맥·출력). `test_guard.py`·`test_supervisor.py`가 스크럽·정상답 무변경(오탐 0)을 강제.
+
 ### 검색 품질 — 어휘(TF-IDF) vs 의미(dense)
 
 Knowledge의 retriever는 교체 가능하다. 검색 평가셋(`app/eval/retrieval_tasks.py`, 직접매칭 5 +
