@@ -34,7 +34,17 @@ class ReportDoc:
 def build_report(question: str, records: dict[str, dict]) -> ReportDoc:
     """records = {에이전트명: {summary, confidence, needs_human, ok, data}} → 구조화 리포트.
 
-    overall_confidence = 관여 에이전트 신뢰도의 최솟값(가장 약한 고리), needs_human은 OR.
+    overall_confidence = 관여 에이전트 신뢰도의 최솟값(가장 약한 고리).
+    needs_human은 **`needs_human` 플래그 OR `ok=False`** 다 — 실패한 단계가 하나라도 있으면
+    자동 판정을 신뢰 가능하다고 말하지 않는다.
+
+    이 규칙은 2026-08-18에 고쳤다. 그전에는 `needs_human` 플래그만 OR 했는데, 실패했지만
+    플래그를 세우지 않는 경로(`vision`의 `no_image`)가 실재해서 **findings에는 "실패/미완료 —
+    결과를 신뢰할 수 없음"이 찍히는 같은 리포트가 recommendation에서는 "모든 단계가 임계 이상으로
+    완료되었다"고 말하는** 자기모순이 났다. 리포트가 각 에이전트의 플래그 규율에 기대고 있었던
+    것이 원인이라, 신뢰 판정을 `ok`에서 직접 파생하도록 구조를 바꿨다.
+    `tools/bench_durability.py`가 이 상태를 "오도 리포트"로 센다.
+
     findings/recommendation은 결과에서 결정적으로 파생한다(환각 없음).
     """
     sections: list[Section] = []
@@ -47,8 +57,10 @@ def build_report(question: str, records: dict[str, dict]) -> ReportDoc:
         nh = bool(rec.get("needs_human", False))
         ok = bool(rec.get("ok", True))
         sections.append(Section(name, str(rec.get("summary", "")), conf, nh, ok))
-        confidences.append(conf)
-        needs_human = needs_human or nh
+        # 실패한 단계의 신뢰도는 종합에 넣지 않는다 — 실패했는데 confidence가 1.0로 남아 있는
+        # 경로(vision의 no_image)가 있어, 그대로 min에 넣으면 종합신뢰도가 부풀 수 있다.
+        confidences.append(0.0 if not ok else conf)
+        needs_human = needs_human or nh or not ok
         if not ok:
             findings.append(f"{name}: 실패/미완료 — 결과를 신뢰할 수 없음")
         elif nh:

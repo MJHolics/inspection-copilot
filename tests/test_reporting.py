@@ -44,3 +44,43 @@ def test_empty_records():
     r = build_report("q", {})
     assert r.sections == []
     assert "종합할 입력이 없습니다" in r.recommendation
+
+
+# --- 2026-08-18 회귀 방지: 실패한 단계가 있으면 "신뢰 가능"이라고 말하지 않는다 ---------
+# 이전에는 needs_human 플래그만 OR 했다. 실패했지만 플래그를 세우지 않는 경로(vision의
+# no_image)가 실재해서, 같은 리포트가 findings에서는 "실패/미완료 — 결과를 신뢰할 수 없음"이라
+# 하고 recommendation에서는 "모든 단계가 임계 이상으로 완료되었다"고 하는 자기모순이 났다.
+
+def test_failed_step_without_human_flag_still_blocks_auto_verdict():
+    recs = {
+        "vision": {"summary": "이미지가 없어 검사 불가", "confidence": 1.0,
+                   "needs_human": False, "ok": False},
+        "knowledge": {"summary": "근거 확보", "confidence": 0.91,
+                      "needs_human": False, "ok": True},
+    }
+    r = build_report("질문", recs)
+    assert r.needs_human is True
+    assert "신뢰 가능" not in r.recommendation
+    assert "보류" in r.recommendation
+
+
+def test_failed_step_does_not_inflate_overall_confidence():
+    """실패한 단계의 confidence가 1.0로 남아 있어도 종합신뢰도를 끌어올리면 안 된다."""
+    recs = {
+        "vision": {"summary": "실패", "confidence": 1.0, "needs_human": False, "ok": False},
+        "knowledge": {"summary": "ok", "confidence": 0.91, "needs_human": False, "ok": True},
+    }
+    assert build_report("질문", recs).overall_confidence == 0.0
+
+
+def test_findings_and_recommendation_do_not_contradict():
+    """findings가 실패를 말하는데 recommendation이 신뢰 가능이라 말하는 조합은 없어야 한다."""
+    for ok_flags in [(True, True), (True, False), (False, True), (False, False)]:
+        recs = {
+            f"a{i}": {"summary": "", "confidence": 0.9, "needs_human": False, "ok": ok}
+            for i, ok in enumerate(ok_flags)
+        }
+        r = build_report("질문", recs)
+        says_failed = any("실패/미완료" in f for f in r.findings)
+        says_trustworthy = r.recommendation.startswith("자동 판정 신뢰 가능")
+        assert not (says_failed and says_trustworthy)

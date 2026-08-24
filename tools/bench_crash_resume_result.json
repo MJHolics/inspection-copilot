@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "crash_at": "all",
+    "steps": [
+      "vision",
+      "analytics",
+      "knowledge",
+      "report"
+    ],
+    "note": "자식 프로세스를 os._exit(137)로 강제 종료 후 같은 run_id로 재실행"
+  },
+  "rows": [
+    {
+      "구성": "A 현재(체크포인트 없음)",
+      "죽인단계": "vision",
+      "1차_종료코드": 137,
+      "총_실행단계": 5,
+      "실행_순서": "vision vision analytics knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 0,
+      "부작용_발행": 1,
+      "중복_발행": 0,
+      "고유키": 1
+    },
+    {
+      "구성": "C 내구 실행",
+      "죽인단계": "vision",
+      "1차_종료코드": 137,
+      "총_실행단계": 5,
+      "실행_순서": "vision vision analytics knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 0,
+      "부작용_발행": 1,
+      "중복_발행": 0,
+      "고유키": 1
+    },
+    {
+      "구성": "A 현재(체크포인트 없음)",
+      "죽인단계": "analytics",
+      "1차_종료코드": 137,
+      "총_실행단계": 6,
+      "실행_순서": "vision analytics vision analytics knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 0,
+      "부작용_발행": 1,
+      "중복_발행": 0,
+      "고유키": 1
+    },
+    {
+      "구성": "C 내구 실행",
+      "죽인단계": "analytics",
+      "1차_종료코드": 137,
+      "총_실행단계": 5,
+      "실행_순서": "vision analytics analytics knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 1,
+      "부작용_발행": 1,
+      "중복_발행": 0,
+      "고유키": 1
+    },
+    {
+      "구성": "A 현재(체크포인트 없음)",
+      "죽인단계": "knowledge",
+      "1차_종료코드": 137,
+      "총_실행단계": 7,
+      "실행_순서": "vision analytics knowledge vision analytics knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 0,
+      "부작용_발행": 1,
+      "중복_발행": 0,
+      "고유키": 1
+    },
+    {
+      "구성": "C 내구 실행",
+      "죽인단계": "knowledge",
+      "1차_종료코드": 137,
+      "총_실행단계": 5,
+      "실행_순서": "vision analytics knowledge knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 2,
+      "부작용_발행": 1,
+      "중복_발행": 0,
+      "고유키": 1
+    },
+    {
+      "구성": "A 현재(체크포인트 없음)",
+      "죽인단계": "report",
+      "1차_종료코드": 137,
+      "총_실행단계": 8,
+      "실행_순서": "vision analytics knowledge report vision analytics knowledge report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 0,
+      "부작용_발행": 2,
+      "중복_발행": 1,
+      "고유키": 2
+    },
+    {
+      "구성": "C 내구 실행",
+      "죽인단계": "report",
+      "1차_종료코드": 137,
+      "총_실행단계": 5,
+      "실행_순서": "vision analytics knowledge report report",
+      "재개_성공": true,
+      "재개시_건너뛴단계": 3,
+      "부작용_발행": 2,
+      "중복_발행": 1,
+      "고유키": 1
+    }
+  ]
+}

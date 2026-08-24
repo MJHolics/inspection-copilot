@@ -221,6 +221,32 @@ TF-IDF만). 한국어 임베딩 모델은 `DenseRetriever(model_name=...)`로 BG
 GROUNDING_RETRIEVER=dense python demo.py      # 의미검색으로 데모 실행
 ```
 
+## 내구 실행 — 장애가 섞여도 완주하고, 두 번 발행하지 않는다
+
+`Supervisor`는 단계 결과를 메모리에만 둔다. 프로세스가 죽으면 끝난 단계까지 잃고, 일시 고장에
+재시도가 없으며, 그래서 "실패하면 다시 돌리자"가 **되돌릴 수 없는 부작용을 중복 실행**한다.
+`app/durable.py`가 그 셋을 닫는다(`store=None`이면 기존 동작 그대로 — 데모·서버 경로 무영향).
+
+```bash
+python tools/bench_durability.py        # 고장 200요청 × 3구성 짝지음 비교
+python tools/bench_crash_resume.py      # os._exit(137)로 진짜 강제 종료 후 재개
+python tools/bench_checkpoint_cost.py   # 내구성의 값(5회 반복)
+```
+
+| 구성 | 완주율 | 요청 유실(예외 고장) | **중복 발행** | 재실행 스텝 | 총 호출 |
+|---|---:|---:|---:|---:|---:|
+| 재시도 없음(현재) | 25.5% | 149 | 0 | 0 | 800 |
+| 요청 전체 재시도 | **85.5%** | 70 | **161** | 662 | 1,824 |
+| **내구 실행** | **85.5%** | **0** | **0** | **0** | **1,162** |
+
+> **완주율이 같다.** 갈린 것은 중복 발행 161 대 0이다 — 부작용을 세는 지표를 따로 두지 않았으면
+> "재시도만 붙이면 된다"로 끝났을 것이다. 상한 85.5%는 영구 고장 3%를 일부러 섞었기 때문이다.
+
+프로세스를 `os._exit(137)`로 실제로 죽여 재개도 확인했다. 체크포인트가 없으면 죽는 지점이 뒤일수록
+버리는 일이 늘고(5→8단계) 마지막 단계에서 죽으면 **성적서가 2장** 나간다. 내구 실행은 어디서 죽든
+**5단계로 평평**하고 재실행분이 같은 멱등 키라 1장으로 접힌다 — **체크포인트만으로는 exactly-once가
+안 되고**, 안전하게 만드는 것은 키다. 자세한 서사·비용·한계는 [`docs/durable-execution.md`](docs/durable-execution.md).
+
 ## 상태
 
 | Phase | 내용 | 상태 |
@@ -230,3 +256,4 @@ GROUNDING_RETRIEVER=dense python demo.py      # 의미검색으로 데모 실행
 | P2 | 서브에이전트 실구현 — **Analytics ✅ · Knowledge ✅ · Report ✅ · Vision ✅** | ✅ |
 | P3 | Eval 하네스(라우팅·그라운딩·게이트·e2e) + 가드레일 | ✅ |
 | P4 | 서빙(FastAPI) + 데모(gradio) + Docker ✅ · HF Spaces 배포(사용자 push 대기) | 🔄 |
+| P5 | **내구 실행** — 체크포인트·단계 재시도·멱등 부작용(`app/durable.py`) + 벤치 3종 · 서사 [`docs/durable-execution.md`](docs/durable-execution.md) | ✅ |

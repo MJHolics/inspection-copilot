@@ -1,10 +1,15 @@
 """공유 supervisor 팩토리 — 서버·데모·CLI가 동일 인스턴스를 지연 생성해 쓴다."""
 from __future__ import annotations
 
+from pathlib import Path
+
 from .agents import default_registry
 from .supervisor import Supervisor
 
 _sup: Supervisor | None = None
+
+# 체크포인트 기본 위치. 요청마다 파일 하나(run_id.json).
+RUNS_DIR = Path("runs")
 
 
 def get_supervisor() -> Supervisor:
@@ -24,6 +29,24 @@ def get_supervisor() -> Supervisor:
         # 키가 있으면 실 LLM 라우터, 없으면 Supervisor 기본(RuleRouter)으로 자동 폴백.
         _sup = Supervisor(agents=agents, router=default_llm_router())
     return _sup
+
+
+def get_durable_supervisor(run_id: str, runs_dir: Path | None = None,
+                           fsync: bool = False, budget_s: float | None = None):
+    """같은 에이전트 구성에 내구 실행 층을 씌운 supervisor(요청 1건 = 체크포인트 파일 1개).
+
+    `get_supervisor()`와 **같은 레지스트리·라우터**를 쓴다 — 측정한 구성과 배포된 구성이 갈리지
+    않게 하려는 기존 원칙 그대로다. 기본 `fsync=False`는 위협 모델이 프로세스 사망(OOM 킬·컨테이너
+    교체)이기 때문이고, 전원 손실까지 막아야 하면 True로 켠다(단계당 1.37ms → 3.41ms).
+
+    같은 run_id로 다시 부르면 끝난 단계는 재실행하지 않고, 완료된 요청이면 저장된 결과를 재생한다.
+    """
+    from .durable import DurableSupervisor, FileCheckpointStore, RetryPolicy
+
+    base = get_supervisor()
+    store = FileCheckpointStore((runs_dir or RUNS_DIR) / f"{run_id}.json", fsync=fsync)
+    return DurableSupervisor(agents=base.agents, router=base.router, tracer=base.tracer,
+                             store=store, retry=RetryPolicy(), budget_s=budget_s)
 
 
 def result_to_dict(res) -> dict:

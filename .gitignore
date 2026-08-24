@@ -18,6 +18,10 @@ data/db/*.sqlite
 uploads/
 output/
 traces/
+runs/                 # 내구 실행 체크포인트(요청별 상태 — 커밋 안 함)
+.bench_ckpt/
+.cost_ckpt/
+.crash_test/
 
 # Logs
 *.log
