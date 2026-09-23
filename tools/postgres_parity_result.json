@@ -1,0 +1,42 @@
+{
+  "n_rows": 600,
+  "n_portable_queries": 15,
+  "n_mismatches": 1,
+  "mismatches": [
+    {
+      "query": "SELECT product, defect_class, COUNT(*) AS n FROM inspections WHERE line = 'L3' GROUP BY product, defect_class ORDER BY n DESC LIMIT 10",
+      "sqlite_rows": 10,
+      "pg_rows": 10,
+      "sqlite_only": [
+        [
+          "steel_coil",
+          "crazing",
+          6
+        ]
+      ],
+      "pg_only": [
+        [
+          "steel_coil",
+          "rolled-in_scale",
+          6
+        ]
+      ]
+    }
+  ],
+  "latency_ms": {
+    "sqlite": {
+      "mean": 0.1497466650713856,
+      "median": 0.12029999925289303
+    },
+    "postgres": {
+      "mean": 0.32050000057400513,
+      "median": 0.31850000959821045
+    }
+  },
+  "sqlite_only_function_probe": {
+    "query": "SELECT strftime('%m', ts) AS month, COUNT(*) AS n FROM inspections GROUP BY month ORDER BY month",
+    "sqlite_dry_run_ok": true,
+    "postgres_dry_run_ok": false,
+    "postgres_error": "function strftime(unknown, text) does not exist\nLINE 1: EXPLAIN SELECT strftime('%m', ts) AS month, COUNT(*) AS n FR...\n                       ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n"
+  }
+}

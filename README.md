@@ -114,6 +114,28 @@ MCP 클라이언트(예: Claude Desktop) 등록 예시:
 도구 로직은 코파일럿의 기존 테스트된 순수 모듈(`app/guard`·`app/retrieval`·`app/sqlutils`)을 재사용하며,
 도구 등록·실호출(`call_tool`)을 단위테스트한다(`tests/test_mcp_server.py`).
 
+## Analytics(NL2SQL) DB 이식성 — SQLite ↔ PostgreSQL (2026-09-13)
+
+Analytics 에이전트의 검사 DB(`app/db.py`)는 SQLite뿐이었다. 같은 합성 DB(600행, 시드42)를
+PostgreSQL(WSL2 로컬, `apt install postgresql` — 서버·클라우드 계정 불필요)에도 동일 적재해
+"연결된다"가 아니라 **같은 질의에서 같은 답이 나오는가**를 실측했다.
+
+```bash
+python tools/postgres_parity.py     # tools/postgres_parity_result.json
+```
+
+| 항목 | 결과 |
+|---|---|
+| 이식 가능 질의 15종 | **14/15 완전 일치** |
+| 남은 1건 | 버그 아님 — `ORDER BY n DESC LIMIT 10`에서 n=6인 4-way 동점이 절단 지점에 걸림(SQL 표준 미정의 동작, 전체 21행 집합은 두 백엔드 동일) |
+| SQLite 전용 함수(`strftime`) 질의 | 기존 `sqlutils.dry_run` 가드가 Postgres EXPLAIN에서도 실행 전에 정확히 차단 |
+| 검색 지연(중앙값, 5회) | SQLite 0.12ms vs PostgreSQL 0.32ms(TCP 소켓 왕복 — 예상된 결과) |
+
+첫 실행에서는 15건 중 2건이 불일치로 떴는데, 원인을 추적하니 1건은 `psycopg2`가 `ROUND()`를
+`Decimal`로 돌려주고 `sqlite3`는 `float`로 돌려줘서 생긴 **비교 코드의 타입 불일치**였다
+(`Decimal('0.495') == 0.495`는 `False` — 값은 같은데 이진 부동소수 표현 때문). 타입을 맞추자
+1건으로 줄었고, 남은 1건이 위 동점 케이스다. 상세: 지식베이스 N1~N5.
+
 ## 한 줄 요약
 
 "동작하는 에이전트"가 아니라 **측정·검증되는 에이전트**:
