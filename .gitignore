@@ -11,14 +11,16 @@ venv/
 sa.json
 
 # Data & artifacts
-data/                 # 합성 검사 DB는 코드로 결정적 생성(커밋 안 함)
+# 합성 검사 DB는 코드로 결정적 생성(커밋 안 함)
+data/
 data/raw/
 data/db/*.sqlite
 .chroma/
 uploads/
 output/
 traces/
-runs/                 # 내구 실행 체크포인트(요청별 상태 — 커밋 안 함)
+# 내구 실행 체크포인트(요청별 상태 — 커밋 안 함)
+runs/
 .bench_ckpt/
 .cost_ckpt/
 .crash_test/

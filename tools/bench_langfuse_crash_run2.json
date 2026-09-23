@@ -1,0 +1,31 @@
+{
+  "measured_at": "2026-09-24T01:56:26",
+  "duration_s": 12.0,
+  "gap_s": 0.05,
+  "results": {
+    "flush_each": {
+      "sent": 106,
+      "expected_spans": 246,
+      "returncode": 137,
+      "arrived_total": 246,
+      "lost_spans": 0,
+      "loss_rate": 0.0
+    },
+    "batch_interval_5s": {
+      "sent": 221,
+      "expected_spans": 514,
+      "returncode": 137,
+      "arrived_total": 453,
+      "lost_spans": 61,
+      "loss_rate": 0.1187
+    },
+    "batch_interval_1s": {
+      "sent": 222,
+      "expected_spans": 516,
+      "returncode": 137,
+      "arrived_total": 477,
+      "lost_spans": 39,
+      "loss_rate": 0.0756
+    }
+  }
+}

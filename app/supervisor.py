@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from .agents import AgentRequest, AgentResult, BaseAgent, default_registry
 from .guard import redact_secrets
+from . import langfuse_trace
 from .router import RoutePlan, RuleRouter
 from .trace import RequestTrace, StepRecord, Tracer, now_iso
 
@@ -35,6 +36,10 @@ class Supervisor:
         self.tracer = tracer if tracer is not None else Tracer()
 
     def handle(self, text: str, image_path: str | None = None) -> SupervisorResult:
+        with langfuse_trace.request_span("supervisor.handle", text):
+            return self._handle(text, image_path)
+
+    def _handle(self, text: str, image_path: str | None = None) -> SupervisorResult:
         req = AgentRequest(text=text, image_path=image_path, context={})
         plan = self.router.plan(req, self.agents)
 
@@ -46,10 +51,15 @@ class Supervisor:
         for name in plan.steps:
             agent = self.agents[name]
             t0 = time.perf_counter()
-            res = agent.run(AgentRequest(text=text, image_path=image_path, context=ctx))
-            latency = int((time.perf_counter() - t0) * 1000)
-            # 출력측 방어선(직교): 어떤 에이전트든 응답에 시크릿이 실리면 나가기 전에 가린다.
-            res.summary = redact_secrets(res.summary)
+            with langfuse_trace.step_span(name):
+                res = agent.run(AgentRequest(text=text, image_path=image_path, context=ctx))
+                latency = int((time.perf_counter() - t0) * 1000)
+                # 출력측 방어선(직교): 어떤 에이전트든 응답에 시크릿이 실리면 나가기 전에 가린다.
+                res.summary = redact_secrets(res.summary)
+                langfuse_trace.update_current_span(
+                    output={"ok": res.ok, "confidence": res.confidence, "needs_human": res.needs_human},
+                    metadata={"latency_ms": latency},
+                )
             results.append(res)
             # 다운스트림(특히 report)이 참조할 구조화 레코드. data만이 아니라 요약·신뢰도·플래그까지.
             ctx[name] = {
@@ -88,6 +98,10 @@ class Supervisor:
         )
         if self.tracer is not None:
             self.tracer.emit(trace)
+        langfuse_trace.update_current_span(
+            output={"answer": answer, "ok": ok, "needs_human": needs_human, "route": plan.steps},
+            metadata={"total_latency_ms": total_latency},
+        )
 
         return SupervisorResult(
             answer=answer,

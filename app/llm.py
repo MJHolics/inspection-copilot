@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 
-from . import config
+from . import config, langfuse_trace
 
 
 def _detect_provider() -> str:
@@ -35,6 +35,12 @@ class LLM:
 
     def complete(self, system: str, user: str, temperature: float = 0.0) -> str:
         """system+user 프롬프트로 한 번 호출하고 텍스트만 반환. 429는 잠시 대기 후 재시도."""
+        with langfuse_trace.generation_span(f"llm.{self.provider}", self.model, system, user):
+            out = self._complete_with_retry(system, user, temperature)
+            langfuse_trace.update_current_generation(output=out)
+            return out
+
+    def _complete_with_retry(self, system: str, user: str, temperature: float) -> str:
         fn = {"gemini": self._gemini, "anthropic": self._anthropic, "openai": self._openai}.get(
             self.provider
         )

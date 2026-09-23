@@ -23,6 +23,8 @@ pydantic>=2.0
 # -- 다른 LLM 제공자 --
 # anthropic>=0.40
 # openai>=1.40
+# -- LLM 관측성(Langfuse, 자체 트레이서(app/trace.py)와 병행 비교용) --
+# langfuse>=4.0   (v4 OTel 기반 API 사용 — start_as_current_observation)
 
 # === 개발/테스트 ===
 pytest>=8.0
