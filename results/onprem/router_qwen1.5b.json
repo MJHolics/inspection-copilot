@@ -1,0 +1,2151 @@
+{
+ "summary": {
+  "tag": "qwen1.5b",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "base_url": "http://localhost:8000/v1",
+  "all": {
+   "n": 68,
+   "exact": 0.735,
+   "jaccard": 0.814,
+   "fallback_rate": 0.044,
+   "p50_ms": 227.4,
+   "p95_ms": 428.0
+  },
+  "golden": {
+   "n": 15,
+   "exact": 0.733,
+   "jaccard": 0.856,
+   "fallback_rate": 0.0,
+   "p50_ms": 228.2,
+   "p95_ms": 4668.0
+  },
+  "adversarial": {
+   "n": 13,
+   "exact": 0.846,
+   "jaccard": 0.885,
+   "fallback_rate": 0.154,
+   "p50_ms": 237.0,
+   "p95_ms": 336.2
+  },
+  "heldout": {
+   "n": 40,
+   "exact": 0.7,
+   "jaccard": 0.775,
+   "fallback_rate": 0.025,
+   "p50_ms": 224.4,
+   "p95_ms": 428.0
+  },
+  "repeat_flips": 0,
+  "repeats": 2
+ },
+ "runs": [
+  [
+   {
+    "id": "kn-scr",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 4668.0
+   },
+   {
+    "id": "kn-crz",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 230.5
+   },
+   {
+    "id": "kn-inc",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 172.2
+   },
+   {
+    "id": "kn-pit",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 223.9
+   },
+   {
+    "id": "gate-off",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 179.8
+   },
+   {
+    "id": "an-line",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 337.6
+   },
+   {
+    "id": "an-sev",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 449.9
+   },
+   {
+    "id": "an-prod",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 333.4
+   },
+   {
+    "id": "multi-kn-rep",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 219.4
+   },
+   {
+    "id": "multi-an-rep",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 229.4
+   },
+   {
+    "id": "img-vis",
+    "split": "golden",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 177.2
+   },
+   {
+    "id": "img-multi",
+    "split": "golden",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.333,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 164.5
+   },
+   {
+    "id": "img-rep",
+    "split": "golden",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 175.1
+   },
+   {
+    "id": "kn-pit2",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 269.7
+   },
+   {
+    "id": "an-month",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 228.2
+   },
+   {
+    "id": "adv-offtopic-kw",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 129.1
+   },
+   {
+    "id": "adv-offtopic-clean",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm->rule",
+    "llm_used": false,
+    "ms": 284.3
+   },
+   {
+    "id": "adv-collide-stats1",
+    "split": "adversarial",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 336.2
+   },
+   {
+    "id": "adv-collide-stats2",
+    "split": "adversarial",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 261.2
+   },
+   {
+    "id": "adv-synonym-crz",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 242.6
+   },
+   {
+    "id": "adv-synonym-pit",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 179.0
+   },
+   {
+    "id": "adv-multi-legit",
+    "split": "adversarial",
+    "pred": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 286.0
+   },
+   {
+    "id": "adv-vague-img",
+    "split": "adversarial",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 237.0
+   },
+   {
+    "id": "adv-weak-report",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 163.4
+   },
+   {
+    "id": "adv-offtopic-report",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 185.4
+   },
+   {
+    "id": "adv-inject-ko",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm->rule",
+    "llm_used": false,
+    "ms": 135.4
+   },
+   {
+    "id": "adv-inject-en",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 260.7
+   },
+   {
+    "id": "adv-multiling-en",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 144.1
+   },
+   {
+    "id": "h-k01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 224.4
+   },
+   {
+    "id": "h-k02",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 163.9
+   },
+   {
+    "id": "h-k03",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 190.9
+   },
+   {
+    "id": "h-k04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 149.6
+   },
+   {
+    "id": "h-k05",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 175.5
+   },
+   {
+    "id": "h-k06",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 237.8
+   },
+   {
+    "id": "h-k07",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 261.3
+   },
+   {
+    "id": "h-k08",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 184.9
+   },
+   {
+    "id": "h-k09",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 184.9
+   },
+   {
+    "id": "h-k10",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 197.4
+   },
+   {
+    "id": "h-a01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 241.7
+   },
+   {
+    "id": "h-a02",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 326.6
+   },
+   {
+    "id": "h-a03",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 270.8
+   },
+   {
+    "id": "h-a04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 199.2
+   },
+   {
+    "id": "h-a05",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 280.2
+   },
+   {
+    "id": "h-a06",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 147.5
+   },
+   {
+    "id": "h-a07",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 390.6
+   },
+   {
+    "id": "h-a08",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 231.5
+   },
+   {
+    "id": "h-m01",
+    "split": "heldout",
+    "pred": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.667,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 527.8
+   },
+   {
+    "id": "h-m02",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 159.3
+   },
+   {
+    "id": "h-m03",
+    "split": "heldout",
+    "pred": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 428.0
+   },
+   {
+    "id": "h-m04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 289.0
+   },
+   {
+    "id": "h-m05",
+    "split": "heldout",
+    "pred": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 340.4
+   },
+   {
+    "id": "h-m06",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 224.1
+   },
+   {
+    "id": "h-v01",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 161.6
+   },
+   {
+    "id": "h-v02",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 178.7
+   },
+   {
+    "id": "h-v03",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 166.0
+   },
+   {
+    "id": "h-v04",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 154.6
+   },
+   {
+    "id": "h-v05",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.333,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 151.8
+   },
+   {
+    "id": "h-v06",
+    "split": "heldout",
+    "pred": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "gold": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 302.8
+   },
+   {
+    "id": "h-v07",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 197.8
+   },
+   {
+    "id": "h-o01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm->rule",
+    "llm_used": false,
+    "ms": 227.4
+   },
+   {
+    "id": "h-o02",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 266.4
+   },
+   {
+    "id": "h-o03",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 223.1
+   },
+   {
+    "id": "h-o04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 229.0
+   },
+   {
+    "id": "h-o05",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 275.8
+   },
+   {
+    "id": "h-b01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 216.5
+   },
+   {
+    "id": "h-b02",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 278.7
+   },
+   {
+    "id": "h-b03",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 193.0
+   },
+   {
+    "id": "h-b04",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 308.7
+   }
+  ],
+  [
+   {
+    "id": "kn-scr",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 170.5
+   },
+   {
+    "id": "kn-crz",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 229.9
+   },
+   {
+    "id": "kn-inc",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 167.3
+   },
+   {
+    "id": "kn-pit",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 224.7
+   },
+   {
+    "id": "gate-off",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 185.0
+   },
+   {
+    "id": "an-line",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 340.5
+   },
+   {
+    "id": "an-sev",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 390.2
+   },
+   {
+    "id": "an-prod",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 327.8
+   },
+   {
+    "id": "multi-kn-rep",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 224.5
+   },
+   {
+    "id": "multi-an-rep",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 230.1
+   },
+   {
+    "id": "img-vis",
+    "split": "golden",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 179.4
+   },
+   {
+    "id": "img-multi",
+    "split": "golden",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.333,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 211.8
+   },
+   {
+    "id": "img-rep",
+    "split": "golden",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 171.7
+   },
+   {
+    "id": "kn-pit2",
+    "split": "golden",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 209.4
+   },
+   {
+    "id": "an-month",
+    "split": "golden",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 219.7
+   },
+   {
+    "id": "adv-offtopic-kw",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 115.5
+   },
+   {
+    "id": "adv-offtopic-clean",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm->rule",
+    "llm_used": false,
+    "ms": 300.3
+   },
+   {
+    "id": "adv-collide-stats1",
+    "split": "adversarial",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 331.5
+   },
+   {
+    "id": "adv-collide-stats2",
+    "split": "adversarial",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 254.3
+   },
+   {
+    "id": "adv-synonym-crz",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 247.8
+   },
+   {
+    "id": "adv-synonym-pit",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 169.5
+   },
+   {
+    "id": "adv-multi-legit",
+    "split": "adversarial",
+    "pred": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 277.6
+   },
+   {
+    "id": "adv-vague-img",
+    "split": "adversarial",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 240.3
+   },
+   {
+    "id": "adv-weak-report",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 143.8
+   },
+   {
+    "id": "adv-offtopic-report",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 201.2
+   },
+   {
+    "id": "adv-inject-ko",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm->rule",
+    "llm_used": false,
+    "ms": 132.9
+   },
+   {
+    "id": "adv-inject-en",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 250.5
+   },
+   {
+    "id": "adv-multiling-en",
+    "split": "adversarial",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 211.1
+   },
+   {
+    "id": "h-k01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 216.9
+   },
+   {
+    "id": "h-k02",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 162.1
+   },
+   {
+    "id": "h-k03",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 189.2
+   },
+   {
+    "id": "h-k04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 148.9
+   },
+   {
+    "id": "h-k05",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 167.2
+   },
+   {
+    "id": "h-k06",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 235.4
+   },
+   {
+    "id": "h-k07",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 231.5
+   },
+   {
+    "id": "h-k08",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 188.9
+   },
+   {
+    "id": "h-k09",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 170.2
+   },
+   {
+    "id": "h-k10",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 197.4
+   },
+   {
+    "id": "h-a01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 231.5
+   },
+   {
+    "id": "h-a02",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 281.7
+   },
+   {
+    "id": "h-a03",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 272.2
+   },
+   {
+    "id": "h-a04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 207.0
+   },
+   {
+    "id": "h-a05",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 277.4
+   },
+   {
+    "id": "h-a06",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 259.4
+   },
+   {
+    "id": "h-a07",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 392.1
+   },
+   {
+    "id": "h-a08",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 230.5
+   },
+   {
+    "id": "h-m01",
+    "split": "heldout",
+    "pred": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.667,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 530.9
+   },
+   {
+    "id": "h-m02",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 162.2
+   },
+   {
+    "id": "h-m03",
+    "split": "heldout",
+    "pred": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 419.5
+   },
+   {
+    "id": "h-m04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 267.3
+   },
+   {
+    "id": "h-m05",
+    "split": "heldout",
+    "pred": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "gold": [
+     "analytics",
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 414.3
+   },
+   {
+    "id": "h-m06",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 211.4
+   },
+   {
+    "id": "h-v01",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 149.7
+   },
+   {
+    "id": "h-v02",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 172.0
+   },
+   {
+    "id": "h-v03",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 163.8
+   },
+   {
+    "id": "h-v04",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.5,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 155.0
+   },
+   {
+    "id": "h-v05",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision",
+     "knowledge",
+     "report"
+    ],
+    "exact": false,
+    "jaccard": 0.333,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 151.8
+   },
+   {
+    "id": "h-v06",
+    "split": "heldout",
+    "pred": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "gold": [
+     "vision",
+     "analytics",
+     "report"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 301.8
+   },
+   {
+    "id": "h-v07",
+    "split": "heldout",
+    "pred": [
+     "vision"
+    ],
+    "gold": [
+     "vision"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 177.7
+   },
+   {
+    "id": "h-o01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm->rule",
+    "llm_used": false,
+    "ms": 244.1
+   },
+   {
+    "id": "h-o02",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 258.4
+   },
+   {
+    "id": "h-o03",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 204.2
+   },
+   {
+    "id": "h-o04",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 232.1
+   },
+   {
+    "id": "h-o05",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 280.1
+   },
+   {
+    "id": "h-b01",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": false,
+    "jaccard": 0.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 196.9
+   },
+   {
+    "id": "h-b02",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 272.4
+   },
+   {
+    "id": "h-b03",
+    "split": "heldout",
+    "pred": [
+     "knowledge"
+    ],
+    "gold": [
+     "knowledge"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 163.1
+   },
+   {
+    "id": "h-b04",
+    "split": "heldout",
+    "pred": [
+     "analytics"
+    ],
+    "gold": [
+     "analytics"
+    ],
+    "exact": true,
+    "jaccard": 1.0,
+    "router": "llm",
+    "llm_used": true,
+    "ms": 296.6
+   }
+  ]
+ ]
+}

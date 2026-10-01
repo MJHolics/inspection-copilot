@@ -15,6 +15,8 @@ def _detect_provider() -> str:
     p = config.LLM_PROVIDER.lower()
     if p != "auto":
         return p
+    if config.LOCAL_LLM_BASE_URL:
+        return "local"
     if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
         return "gemini"
     if os.getenv("ANTHROPIC_API_KEY"):
@@ -41,7 +43,8 @@ class LLM:
             return out
 
     def _complete_with_retry(self, system: str, user: str, temperature: float) -> str:
-        fn = {"gemini": self._gemini, "anthropic": self._anthropic, "openai": self._openai}.get(
+        fn = {"gemini": self._gemini, "anthropic": self._anthropic, "openai": self._openai,
+              "local": self._local}.get(
             self.provider
         )
         if fn is None:
@@ -99,6 +102,22 @@ class LLM:
         resp = self._client.chat.completions.create(
             model=self.model,
             temperature=temperature,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+        )
+        return (resp.choices[0].message.content or "").strip()
+
+    def _local(self, system: str, user: str, temperature: float) -> str:
+        """온프레미스 OpenAI 호환 서버(vLLM 등). 키 불요 — 요청이 사내망 밖으로 나가지 않는다."""
+        if self._client is None:
+            from openai import OpenAI
+
+            if not config.LOCAL_LLM_BASE_URL:
+                raise RuntimeError("LOCAL_LLM_BASE_URL이 없습니다(예: http://localhost:8000/v1).")
+            self._client = OpenAI(base_url=config.LOCAL_LLM_BASE_URL, api_key="EMPTY", timeout=60)
+        resp = self._client.chat.completions.create(
+            model=self.model,
+            temperature=temperature,
+            max_tokens=256,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
         )
         return (resp.choices[0].message.content or "").strip()

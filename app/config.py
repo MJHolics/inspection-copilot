@@ -27,7 +27,10 @@ LLM_MODEL: dict[str, str] = {
     "gemini": os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
     "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6"),
     "openai": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+    "local": os.getenv("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-1.5B-Instruct"),
 }
+# 온프레미스/폐쇄망: vLLM 등 OpenAI 호환 서버. 설정돼 있으면 auto에서 최우선(데이터가 밖으로 안 나감).
+LOCAL_LLM_BASE_URL: str = os.getenv("LOCAL_LLM_BASE_URL", "")
 
 # --- 검사 도메인 ---
 DEFECT_CLASSES: list[str] = [

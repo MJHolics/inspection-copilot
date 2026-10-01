@@ -196,6 +196,53 @@ python tools/bench_langfuse_crash.py              # 강제 종료 시 유실(배
 요청마다 flush의 비용은 더 커진다. 크래시 실험은 단일 부하 조건(초당 약 18건)이다.
 원자료: `tools/bench_langfuse_result.json`, `tools/bench_langfuse_crash_run{1,2,3}.json`.
 
+## 온프레미스 라우터 — 외부 API 없이 로컬 소형 LLM이 라우팅을 맡으면 (2026-10-01)
+
+**목표·이유.** 지금까지의 라우팅 평가 수치는 전부 **규칙 라우터** 기준이었다. 폐쇄망 제조 현장에선
+Gemini/OpenAI를 못 쓰므로, 에이전트의 '두뇌'를 사내 GPU의 소형 모델로 바꿨을 때 무엇을 얻고 잃는지를 쟀다.
+`app/llm.py`에 `local` 제공자(OpenAI 호환 vLLM, `LOCAL_LLM_BASE_URL`)를 추가했고, 서버는
+`HF_HUB_OFFLINE=1`로 허브 접근 없이 로컬 캐시만 쓴다(`tools/onprem/serve.sh`).
+
+**공정성 장치.** 골든 15·적대적 13건은 규칙 라우터를 고치는 데 쓴 셋이라 규칙 라우터에 in-sample이다(28/28).
+그래서 **어느 라우터도 돌리기 전에** 라벨을 고정한 held-out 40건(`app/eval/heldout_route_tasks.py` —
+구어체·영어·오타·키워드 없는 의도·복합·오프토픽·경계)을 따로 만들고, **비교는 held-out으로만** 한다.
+LLM 라우터 프롬프트(`build_routing_system`)는 이 측정 전후로 고치지 않았다. temperature 0, 2회 반복.
+
+```bash
+bash tools/onprem/serve.sh Qwen/Qwen2.5-7B-Instruct-AWQ        # WSL2, RTX 4080 16GB
+LOCAL_LLM_BASE_URL=http://localhost:8000/v1 LOCAL_LLM_MODEL=Qwen/Qwen2.5-7B-Instruct-AWQ \
+  python tools/onprem/bench_local_router.py --tag qwen7b-awq --repeats 2
+python tools/onprem/bench_local_router.py --tag rule --rule-only --repeats 1
+```
+
+| 라우터 | 가중치 | held-out 정확(exact) | LLM이 직접 정한 건 | 규칙 대비 (LLM만 맞춤 / 규칙만 맞춤) | McNemar p | 지연 p50 / p95 |
+|---|---:|---:|---:|---|---:|---|
+| 규칙(기준선) | — | 32/40 (0.80) | — | — | — | <1ms |
+| Qwen2.5-1.5B | 2.98 GiB | 28/40 (0.70) | 27/39 | 4 / 8 | 0.39 | 224 / 391ms |
+| Qwen2.5-3B | 5.79 GiB | 33/40 (0.825) | 30/37 | 7 / 6 | 1.00 | 446 / 612ms |
+| **Qwen2.5-7B-AWQ** | 5.29 GiB | **39/40 (0.975)** | 35/36 | **8 / 1** | **0.039** | 254 / 464ms |
+
+- **7B-AWQ만 규칙 라우터를 유의하게 이겼다**(held-out, 짝지은 정확 McNemar). 1.5B·3B는 차이를 주장할 수 없다.
+- **규칙 라우터가 틀린 8건 중 6건이 "키워드 없는 집계 의도"**("어느 라인이 제일 문제 많아?", "제품 B는 검사 몇 번 했지?",
+  영어 질의) — 규칙은 이걸 knowledge로 보낸다. 나머지 2건은 불필요한 단계를 더한 과잉 라우팅. 7B는 이 8건을 전부 맞혔고,
+  7B가 틀린 held-out 1건("이물 박힌 제품은 폐기야 재작업이야?"에 report 추가)은 규칙이 맞혔다.
+- **작은 모델의 실패는 모양이 다르다**: 1.5B는 집계 질문을 knowledge로 보내고(5건) "보고서로/문서로"를 무시해
+  report를 빠뜨렸다. 3B는 report 누락(5건)과 함께 **오프토픽(환율 전망)을 analytics로** 보냈다.
+- **폴백은 오프토픽 처리 경로였다**: 7B 폴백 10건(held-out 4건)은 전부 오프토픽·프롬프트 주입 질의였고,
+  규칙 폴백이 knowledge로 보내 근거 게이트가 멈춘다 — 결과는 전부 정답. LLM이 직접 정한 held-out 36건 중 35건이 정답.
+- 반복 2회 간 예측이 바뀐 케이스 0건(temperature 0).
+- **지연**: 7B-AWQ가 3B보다 빨랐다(p50 254 vs 446ms). 원인은 확인하지 않았다(출력 토큰 수를 기록하지 않음).
+  첫 요청은 세 모델 모두 4.6~5.0초(콜드 스타트) — 위 표는 그 1건을 뺀 값이고, 원자료 요약의 p95(4.6s대)는 이 1건 때문이다.
+- 규칙 라우터는 지연 <1ms·GPU 0이라, **7B를 쓰는 대가는 요청당 약 0.25초와 GPU 5.3GiB**다.
+
+**에러 대처 기록.** 09-26 착수 직후 PC가 꺼져 모델 다운로드만 끝나고 측정이 0건이었다(vLLM 기동 로그가 끊김).
+10-01 재개 때 서버 교체에 `pkill -f 'vllm serve'`를 썼다가 패턴이 그 명령을 실행한 셸 자신과도 일치해
+셸이 먼저 죽었다(exit 15) → `pkill -f '[v]llm serve'`로 교체.
+
+**정직한 범위.** held-out 40건은 한 사람이 만든 셋이고, 라벨 규약(report 포함 조건 등)에 따라 정답이 갈리는 질의가 있다.
+폴백 사유(파싱 실패 vs 빈 계획)는 따로 기록하지 않았다. 단일 GPU·동시성 1(순차 요청) 조건이다.
+원자료: `results/onprem/router_{rule,qwen1.5b,qwen3b,qwen7b-awq}.json`.
+
 ## 한 줄 요약
 
 "동작하는 에이전트"가 아니라 **측정·검증되는 에이전트**:
