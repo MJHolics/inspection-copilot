@@ -20,3 +20,35 @@ jobs:
         run: ruff check app tests cli.py demo.py
       - name: Test
         run: pytest -q
+
+  # React+TS 콘솔(web/) — 백엔드 응답 모델과 프론트 타입이 어긋나면 여기서 실패한다.
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Contract drift — backend OpenAPI must match committed web/openapi.json
+        run: |
+          # 버전 고정 — OpenAPI 출력이 버전 따라 바뀌면 표류 감시가 거짓 경보를 낸다
+          pip install "fastapi==0.142.2" "pydantic==2.13.5"
+          python tools/contract/export_openapi.py
+          git diff --exit-code web/openapi.json
+      - name: Install
+        working-directory: web
+        run: npm ci
+      - name: Contract drift — generated types must match openapi.json
+        working-directory: web
+        run: |
+          npm run gen:types
+          git diff --exit-code src/api/generated.ts
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
+      - name: Test
+        working-directory: web
+        run: npm test

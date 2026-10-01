@@ -243,6 +243,58 @@ python tools/onprem/bench_local_router.py --tag rule --rule-only --repeats 1
 폴백 사유(파싱 실패 vs 빈 계획)는 따로 기록하지 않았다. 단일 GPU·동시성 1(순차 요청) 조건이다.
 원자료: `results/onprem/router_{rule,qwen1.5b,qwen3b,qwen7b-awq}.json`.
 
+## React + TypeScript 콘솔과 응답 계약 — 백엔드가 바뀌면 프론트는 어디서 알아채나 (2026-10-02)
+
+**목표·이유.** `/inspect`는 `-> dict`라 OpenAPI 스키마가 `object` 하나였다. 프론트를 TS로 짜도 타입을 생성하면
+`unknown`뿐이라, 타입이 실제로 무엇을 막아 주는지 말할 근거가 없었다. 응답 모델(`app/schemas.py`)을 선언하고
+React + TS 콘솔(`web/`)을 붙인 뒤, **백엔드 계약 변경을 일부러 넣어** 프론트 전략별로 어디서 드러나는지 쟀다.
+
+```bash
+python tools/contract/export_openapi.py             # app → web/openapi.json
+cd web && npm ci && npm run gen:types               # openapi.json → src/api/generated.ts (openapi-typescript)
+npm run typecheck && npm test                       # tsc + node:test 4개
+npm run dev                                         # http://localhost:5173 (/api → uvicorn :8000 프록시)
+python tools/contract/run_contract_bench.py         # 계약 변경 실험 → results/contract/contract_bench.json
+```
+
+**설계.** 변경 9종은 모두 **의미 보존**(같은 정보를 다른 이름·타입·구조·단위로) — 올바른 프론트라면 화면이 같아야 한다.
+M8은 대조군(선택 필드 추가). 응답 표본은 골든 15 + 적대적 13의 실제 응답 28건이고, 변경 응답은 변경된 Pydantic
+모델로 검증해 "그 백엔드가 실제로 보낼 수 있는 응답"만 썼다. 전략 4종의 렌더 코드는 같고(`tools/contract/sync_views.py`)
+타입 출처만 다르다: **A** 타입 없음 · **B** 손으로 쓴 타입 · **C** OpenAPI에서 재생성한 타입 + `tsc` · **D** B + 응답 경계 zod 검증.
+
+| 변경 (응답 28건씩) | C 빌드(tsc 에러) | A·B 실행 | D zod 실행 |
+|---|---|---|---|
+| M1 필드 이름 `confidence→trust_score` | **잡음**(2) | 크래시 28 | 거부 28 |
+| M2 타입 `latency_ms` int→str | **잡음**(1) | 영향 없음 28 | 거부 28 |
+| M3 중첩 `evidence` list→{items} | **잡음**(4) | 크래시 28 | 거부 28 |
+| M4 구조 `router`→`routing.mode` | **잡음**(3) | **조용한 오작동 28**(라우터 배지 빈칸) | 거부 28 |
+| M5 enum 표기 `rule→RULE` | **잡음**(2) | **조용한 오작동 28**(배지 빈칸) | 거부 28 |
+| M6 단위 ms→s(이름·타입 그대로) | **못 잡음**(0) | 조용한 오작동 2~3("2 ms"→"0.002 ms") | 거부 2~3 |
+| M7 이동 `report_markdown→report.markdown` | **잡음**(3) | **조용한 오작동 28**(빈 리포트 칸) | 거부 28 |
+| M8 대조군: 선택 필드 추가 | 0 | 영향 없음 | 영향 없음 |
+| M9 요청 `question→query` | **잡음**(1) | HTTP 422 | HTTP 422 |
+
+- **재생성 타입 + tsc는 깨지는 변경 8종 중 7종을 배포 전에 잡았다.** 못 잡은 1종은 단위 변경 — 타입은 "숫자"까지만 안다.
+  대조군(M8)에서는 오경보 0.
+- **손으로 쓴 타입은 타입이 없는 것과 결과가 같았다**(B = A, 9종 전부). 백엔드와 연결되지 않은 타입은 빌드를 통과시켜 줄 뿐이다.
+- 타입 없이 배포하면 8종 중 **4종이 에러 없이 화면만 틀어진다**(M4·M5·M6·M7). 크래시(M1·M3)는 오히려 알아채기 쉬운 쪽이었다.
+- **zod는 실행 중에 7종을 잡지만 대가가 있다**: 화면이 멀쩡했을 M2(문자열 "22"도 `${} ms`로 같게 그려짐)까지 거부해 **응답 전체를
+  안 그린다**. 무해한 변경을 장애로 바꾼다. M6을 잡은 것도 `int()` 제약이 우연히 걸린 것이지 단위를 이해해서가 아니다.
+- C에서 잡힌 7종 모두 `client.ts`에서도 에러가 났다 — zod 스키마가 돌려주는 타입과 생성 타입이 어긋나 경계에서 먼저 드러난다.
+  zod 스키마가 손으로 쓴 사본이어도, 생성 타입과 한 줄로 묶어 두면 사본이 낡았을 때 빌드가 알려 준다.
+- **CI에 표류 감시를 넣었다**(`web` 작업): 백엔드에서 뽑은 OpenAPI가 커밋된 `web/openapi.json`과 다르거나, 그걸로 다시 만든
+  타입이 커밋된 `generated.ts`와 다르면 실패 → 그다음 `tsc`가 어긋난 사용처를 가리킨다.
+
+**에러 대처 기록.**
+- `openapi-typescript`에 절대 경로를 넘기자 한글 폴더명(`AI개발`)을 URL 인코딩해 파일을 못 찾았다 → `web/` 기준 상대 경로로.
+- 변경 모델을 함수 안에서 만들어 FastAPI에 넘기는데 `from __future__ import annotations`가 있으면 주석이 문자열이 돼
+  지역 모델을 못 푼다 → 그 모듈만 future import를 뺐다.
+- 비교 전략 파일 주석에 "sync_views로 생성"이라고 적어 놓고 스크립트가 없었다 → `sync_views.py`를 만들고 실험 시작 시 항상 실행.
+
+**정직한 범위.** 화면 컴포넌트 하나·변경 9종(직접 고른 유형)·응답 28건. "조용한 오작동"은 렌더 HTML이 변경 전과 다른지로만
+판정했다. M6 건수는 지연이 0ms가 아닌 응답 수라 실행마다 2~3건으로 바뀐다. 실제 사용자 브라우저 E2E는 개발 서버에서 한 번
+수동 확인만 했다(질의 → 라우터·근거·리포트 렌더).
+
 ## 한 줄 요약
 
 "동작하는 에이전트"가 아니라 **측정·검증되는 에이전트**:

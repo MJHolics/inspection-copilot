@@ -5,20 +5,16 @@
   GET  /eval     골든셋 평가 지표(라우팅·그라운딩·게이트·e2e)
 
 uvicorn으로 구동: `uvicorn app.server:app --host 0.0.0.0 --port 8000`
+응답 계약은 `app/schemas.py` — web/(React+TS 콘솔)가 OpenAPI에서 타입을 생성한다.
 """
 from __future__ import annotations
 
 from fastapi import FastAPI
-from pydantic import BaseModel
 
+from .schemas import InspectRequest, InspectResponse
 from .service import get_supervisor, result_to_dict
 
 app = FastAPI(title="Inspection Copilot", version="0.1.0")
-
-
-class InspectRequest(BaseModel):
-    question: str
-    image_path: str | None = None
 
 
 @app.get("/health")
@@ -26,7 +22,7 @@ def health() -> dict:
     return {"status": "ok", "service": "inspection-copilot"}
 
 
-@app.post("/inspect")
+@app.post("/inspect", response_model=InspectResponse)
 def inspect(req: InspectRequest) -> dict:
     res = get_supervisor().handle(req.question, image_path=req.image_path)
     return result_to_dict(res)

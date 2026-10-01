@@ -1,0 +1,334 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "Inspection Copilot",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/health": {
+   "get": {
+    "summary": "Health",
+    "operationId": "health_health_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Health Health Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/inspect": {
+   "post": {
+    "summary": "Inspect",
+    "operationId": "inspect_inspect_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/InspectRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InspectResponse"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/eval": {
+   "get": {
+    "summary": "Eval Metrics",
+    "operationId": "eval_metrics_eval_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Eval Metrics Eval Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "AgentOut": {
+    "properties": {
+     "agent": {
+      "type": "string",
+      "enum": [
+       "vision",
+       "analytics",
+       "knowledge",
+       "report"
+      ],
+      "title": "Agent"
+     },
+     "ok": {
+      "type": "boolean",
+      "title": "Ok"
+     },
+     "summary": {
+      "type": "string",
+      "title": "Summary"
+     },
+     "confidence": {
+      "type": "number",
+      "title": "Confidence"
+     },
+     "needs_human": {
+      "type": "boolean",
+      "title": "Needs Human"
+     },
+     "evidence": {
+      "items": {
+       "$ref": "#/components/schemas/Evidence"
+      },
+      "type": "array",
+      "title": "Evidence"
+     }
+    },
+    "type": "object",
+    "required": [
+     "agent",
+     "ok",
+     "summary",
+     "confidence",
+     "needs_human",
+     "evidence"
+    ],
+    "title": "AgentOut"
+   },
+   "Evidence": {
+    "properties": {
+     "source": {
+      "type": "string",
+      "title": "Source"
+     },
+     "detail": {
+      "type": "string",
+      "title": "Detail"
+     },
+     "score": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Score"
+     }
+    },
+    "type": "object",
+    "required": [
+     "source",
+     "detail",
+     "score"
+    ],
+    "title": "Evidence"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "InspectRequest": {
+    "properties": {
+     "question": {
+      "type": "string",
+      "title": "Question"
+     },
+     "image_path": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Image Path"
+     }
+    },
+    "type": "object",
+    "required": [
+     "question"
+    ],
+    "title": "InspectRequest"
+   },
+   "InspectResponse": {
+    "properties": {
+     "answer": {
+      "type": "string",
+      "title": "Answer"
+     },
+     "ok": {
+      "type": "boolean",
+      "title": "Ok"
+     },
+     "needs_human": {
+      "type": "boolean",
+      "title": "Needs Human"
+     },
+     "route": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "vision",
+        "analytics",
+        "knowledge",
+        "report"
+       ]
+      },
+      "type": "array",
+      "title": "Route"
+     },
+     "router": {
+      "type": "string",
+      "enum": [
+       "rule",
+       "llm",
+       "llm->rule"
+      ],
+      "title": "Router"
+     },
+     "reason": {
+      "type": "string",
+      "title": "Reason"
+     },
+     "grounding_retriever": {
+      "type": "string",
+      "title": "Grounding Retriever"
+     },
+     "agents": {
+      "items": {
+       "$ref": "#/components/schemas/AgentOut"
+      },
+      "type": "array",
+      "title": "Agents"
+     },
+     "report_markdown": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Report Markdown"
+     },
+     "latency_ms": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latency Ms"
+     }
+    },
+    "type": "object",
+    "required": [
+     "answer",
+     "ok",
+     "needs_human",
+     "route",
+     "router",
+     "reason",
+     "grounding_retriever",
+     "agents",
+     "report_markdown",
+     "latency_ms"
+    ],
+    "title": "InspectResponse"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   }
+  }
+ }
+}

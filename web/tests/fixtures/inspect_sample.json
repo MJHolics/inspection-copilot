@@ -1,0 +1,44 @@
+{
+ "answer": "[라우팅: knowledge → report · 의도 키워드/이미지 매칭: knowledge(1) · 리포트 명시 요청]\n\n✓ knowledge (신뢰도 0.14): 근거 문서 'crazing'(SOP-CRZ — 크레이징(crazing) 결함 처리 지침) 기준: 표면에 그물망·거북등 형태로 퍼진 미세 균열. 압연·냉각 응력으로 발생한다. - 압연 온도 불균일, 급랭에 따른 열응력 - 소재 표면 탈탄층 과다 - 균열망이 검사 면적의 10% 이상 분포하면 불량. - 국부적 미세 균열은 경미로 분류 후 추세 관찰. 1. 압연 온도 프로파일과 냉각수 유량을 점검한다. 2. 동일 라인에서 비율이 상승 추세면 공정 조건을 재…\n    근거: crazing — SOP-CRZ — 크레이징(crazing) 결함 처리 지침\n✓ report (신뢰도 1.00): 1개 에이전트 결과 종합(종합신뢰도 0.14).\n    근거: report — 종합 입력: ['knowledge']",
+ "ok": true,
+ "needs_human": false,
+ "route": [
+  "knowledge",
+  "report"
+ ],
+ "router": "rule",
+ "reason": "의도 키워드/이미지 매칭: knowledge(1) · 리포트 명시 요청",
+ "grounding_retriever": "tfidf",
+ "agents": [
+  {
+   "agent": "knowledge",
+   "ok": true,
+   "summary": "근거 문서 'crazing'(SOP-CRZ — 크레이징(crazing) 결함 처리 지침) 기준: 표면에 그물망·거북등 형태로 퍼진 미세 균열. 압연·냉각 응력으로 발생한다. - 압연 온도 불균일, 급랭에 따른 열응력 - 소재 표면 탈탄층 과다 - 균열망이 검사 면적의 10% 이상 분포하면 불량. - 국부적 미세 균열은 경미로 분류 후 추세 관찰. 1. 압연 온도 프로파일과 냉각수 유량을 점검한다. 2. 동일 라인에서 비율이 상승 추세면 공정 조건을 재…",
+   "confidence": 0.137,
+   "needs_human": false,
+   "evidence": [
+    {
+     "source": "crazing",
+     "detail": "SOP-CRZ — 크레이징(crazing) 결함 처리 지침",
+     "score": 0.1366
+    }
+   ]
+  },
+  {
+   "agent": "report",
+   "ok": true,
+   "summary": "1개 에이전트 결과 종합(종합신뢰도 0.14).",
+   "confidence": 1.0,
+   "needs_human": false,
+   "evidence": [
+    {
+     "source": "report",
+     "detail": "종합 입력: ['knowledge']",
+     "score": null
+    }
+   ]
+  }
+ ],
+ "report_markdown": "# 검사 종합 리포트\n\n- 생성: 2026-10-01T15:09:00+00:00\n- 질문: 크레이징 대응 절차를 문서로 정리해줘\n- 종합 신뢰도: 0.14  ·  판정: ✓ 자동 판정\n\n## 단계별 결과\n- **knowledge**(신뢰도 0.14): 근거 문서 'crazing'(SOP-CRZ — 크레이징(crazing) 결함 처리 지침) 기준: 표면에 그물망·거북등 형태로 퍼진 미세 균열. 압연·냉각 응력으로 발생한다. - 압연 온도 불균일, 급랭에 따른 열응력 - 소재 표면 탈탄층 과다 - 균열망이 검사 면적의 10% 이상 분포하면 불량. - 국부적 미세 균열은 경미로 분류 후 추세 관찰. 1. 압연 온도 프로파일과 냉각수 유량을 점검한다. 2. 동일 라인에서 비율이 상승 추세면 공정 조건을 재…\n\n## 발견\n- 특이사항 없음\n\n## 권고\n자동 판정 신뢰 가능: 모든 단계가 임계 이상으로 완료되었다.\n",
+ "latency_ms": 2
+}

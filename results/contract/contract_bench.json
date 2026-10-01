@@ -1,0 +1,367 @@
+{
+ "n_responses": 28,
+ "rows": {
+  "M0": {
+   "desc": "변경 없음(기준)",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 0,
+    "files": [],
+    "first": null
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    }
+   },
+   "silent_example": {}
+  },
+  "M1": {
+   "desc": "필드 이름 변경 — agents[].confidence → trust_score",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 2,
+    "files": [
+     "src/api/client.ts",
+     "src/views/ResultView.tsx"
+    ],
+    "first": "src/api/client.ts(20,3): error TS2322: Type '{ router: \"rule\" | \"llm\" | \"llm->rule\"; ok: boolean; needs_human: boolean; answer: string; route: (\"vision\" | \"analytics\" | \"knowledge\" | \"report\")[]; reason: string; groundin"
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 28,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    },
+    "manual": {
+     "runtime_error": 28,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 28,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {}
+  },
+  "M2": {
+   "desc": "필드 타입 변경 — latency_ms: int → str(\"22\")",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 1,
+    "files": [
+     "src/api/client.ts"
+    ],
+    "first": "src/api/client.ts(20,3): error TS2322: Type '{ router: \"rule\" | \"llm\" | \"llm->rule\"; ok: boolean; needs_human: boolean; answer: string; route: (\"vision\" | \"analytics\" | \"knowledge\" | \"report\")[]; reason: string; groundin"
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 28,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {}
+  },
+  "M3": {
+   "desc": "중첩 구조 변경 — agents[].evidence: list → {items, count}",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 4,
+    "files": [
+     "src/api/client.ts",
+     "src/views/ResultView.tsx"
+    ],
+    "first": "src/api/client.ts(20,3): error TS2322: Type '{ router: \"rule\" | \"llm\" | \"llm->rule\"; ok: boolean; needs_human: boolean; answer: string; route: (\"vision\" | \"analytics\" | \"knowledge\" | \"report\")[]; reason: string; groundin"
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 28,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    },
+    "manual": {
+     "runtime_error": 28,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 28,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {}
+  },
+  "M4": {
+   "desc": "최상위 구조 변경 — router: str → routing: {mode}",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 3,
+    "files": [
+     "src/api/client.ts",
+     "src/api/types.ts",
+     "src/views/ResultView.tsx"
+    ],
+    "first": "src/api/client.ts(20,3): error TS2741: Property 'routing' is missing in type '{ router: \"rule\" | \"llm\" | \"llm->rule\"; ok: boolean; needs_human: boolean; answer: string; route: (\"vision\" | \"analytics\" | \"knowledge\" | \"rep"
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 28,
+     "unaffected": 0
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 28,
+     "unaffected": 0
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 28,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {
+    "untyped": "원래 …n><header><span class=\"badge\">규칙 라우터</span><span class=\"route\">knowled… / 변경 후 …n><header><span class=\"badge\"></span><span class=\"route\">knowledge</sp…",
+    "manual": "원래 …n><header><span class=\"badge\">규칙 라우터</span><span class=\"route\">knowled… / 변경 후 …n><header><span class=\"badge\"></span><span class=\"route\">knowledge</sp…"
+   }
+  },
+  "M5": {
+   "desc": "enum 표기 변경 — rule/llm/llm->rule → RULE/LLM/LLM_FALLBACK",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 2,
+    "files": [
+     "src/api/client.ts",
+     "src/views/ResultView.tsx"
+    ],
+    "first": "src/api/client.ts(20,3): error TS2322: Type '{ router: \"rule\" | \"llm\" | \"llm->rule\"; ok: boolean; needs_human: boolean; answer: string; route: (\"vision\" | \"analytics\" | \"knowledge\" | \"report\")[]; reason: string; groundin"
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 28,
+     "unaffected": 0
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 28,
+     "unaffected": 0
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 28,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {
+    "untyped": "원래 …n><header><span class=\"badge\">규칙 라우터</span><span class=\"route\">knowled… / 변경 후 …n><header><span class=\"badge\"></span><span class=\"route\">knowledge</sp…",
+    "manual": "원래 …n><header><span class=\"badge\">규칙 라우터</span><span class=\"route\">knowled… / 변경 후 …n><header><span class=\"badge\"></span><span class=\"route\">knowledge</sp…"
+   }
+  },
+  "M6": {
+   "desc": "단위 변경(이름·타입 유지) — latency_ms 값을 초 단위로",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 0,
+    "files": [],
+    "first": null
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 2,
+     "unaffected": 26
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 2,
+     "unaffected": 26
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 2,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 26
+    }
+   },
+   "silent_example": {
+    "untyped": "원래 …e</span><span class=\"latency\">2 ms</span></header><ol><li><b>knowledge… / 변경 후 …e</span><span class=\"latency\">0.002 ms</span></header><ol><li><b>knowl…",
+    "manual": "원래 …e</span><span class=\"latency\">2 ms</span></header><ol><li><b>knowledge… / 변경 후 …e</span><span class=\"latency\">0.002 ms</span></header><ol><li><b>knowl…"
+   }
+  },
+  "M7": {
+   "desc": "필드 이동 — report_markdown → report.markdown",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 3,
+    "files": [
+     "src/api/client.ts",
+     "src/views/ResultView.tsx"
+    ],
+    "first": "src/api/client.ts(20,3): error TS2741: Property 'report' is missing in type '{ router: \"rule\" | \"llm\" | \"llm->rule\"; ok: boolean; needs_human: boolean; answer: string; route: (\"vision\" | \"analytics\" | \"knowledge\" | \"repo"
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 28,
+     "unaffected": 0
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 28,
+     "unaffected": 0
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 28,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {
+    "untyped": "원래 …급 (0.075)</li></ul></li></ol></section>… / 변경 후 …급 (0.075)</li></ul></li></ol><pre class=\"report\" style=\"white-space:pr…",
+    "manual": "원래 …급 (0.075)</li></ul></li></ol></section>… / 변경 후 …급 (0.075)</li></ul></li></ol><pre class=\"report\" style=\"white-space:pr…"
+   }
+  },
+  "M8": {
+   "desc": "대조군: 선택 필드 추가 — trace_id",
+   "request_ok": true,
+   "generated_build": {
+    "build_errors": 0,
+    "files": [],
+    "first": null
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 0,
+     "silent": 0,
+     "unaffected": 28
+    }
+   },
+   "silent_example": {}
+  },
+  "M9": {
+   "desc": "요청 필드 이름 변경 — question → query",
+   "request_ok": false,
+   "generated_build": {
+    "build_errors": 1,
+    "files": [
+     "src/api/client.ts"
+    ],
+    "first": "src/api/client.ts(7,12): error TS2353: Object literal may only specify known properties, and 'question' does not exist in type '{ query: string; image_path?: string | null | undefined; }'."
+   },
+   "runtime": {
+    "untyped": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 28,
+     "silent": 0,
+     "unaffected": 0
+    },
+    "manual": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 28,
+     "silent": 0,
+     "unaffected": 0
+    },
+    "zod": {
+     "runtime_error": 0,
+     "contract_error": 0,
+     "http_error": 28,
+     "silent": 0,
+     "unaffected": 0
+    }
+   },
+   "silent_example": {}
+  }
+ }
+}
