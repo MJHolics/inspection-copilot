@@ -48,13 +48,19 @@ class OnnxVisionPredictor:
         x = (x - mean) / std
         return x[None].astype("float32")  # (1,3,H,W)
 
-    def __call__(self, image_path: str) -> list[float]:
+    preprocess = _preprocess
+
+    def predict_batch(self, x):
+        """전처리된 배치 (N,3,H,W) → softmax 확률 (N, 클래스 수)."""
         import numpy as np
 
-        logits = self._sess.run(None, {self._input: self._preprocess(image_path)})[0][0]
-        z = logits - logits.max()
+        logits = self._sess.run(None, {self._input: x})[0]
+        z = logits - logits.max(axis=1, keepdims=True)
         e = np.exp(z)
-        probs = e / e.sum()
+        return e / e.sum(axis=1, keepdims=True)
+
+    def __call__(self, image_path: str) -> list[float]:
+        probs = self.predict_batch(self._preprocess(image_path))[0]
         return [float(p) for p in probs]
 
 

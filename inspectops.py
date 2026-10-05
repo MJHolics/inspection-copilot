@@ -12,6 +12,10 @@
 """
 from __future__ import annotations
 
+import html
+import os
+import tempfile
+
 import gradio as gr
 
 # Tab 1(코파일럿)은 데모와 동일한 라이브 경로를 재사용한다(LLM 키 있으면 실 SQL, 없으면 안전 멈춤).
@@ -30,6 +34,63 @@ def _get_stub_supervisor():
         db.build_db()
         _stub_sup = _build_supervisor(sql_llm=_stub_sql, vision_predictor=_stub_vision)
     return _stub_sup
+
+
+# ───────────────────────── Tab 1 · 검사 성적서(첫 화면) ─────────────────────────
+CERT_SAMPLES = [
+    "samples/sample_01.jpg", "samples/sample_05.jpg", "samples/sample_09.jpg",
+    "samples/sample_13.jpg", "samples/sample_17.jpg",
+]
+_inspectors = None
+
+
+def _get_inspectors():
+    """분류기·검출기를 한 번만 올린다(둘 다 ONNX, CPU)."""
+    global _inspectors
+    if _inspectors is None:
+        from app.detector import load_default_detector
+        from app.vision_model import load_default_predictor
+        _inspectors = (load_default_predictor(), load_default_detector())
+    return _inspectors
+
+
+def _cert_card(cert) -> str:
+    """성적서 요약 카드(HTML). 판정을 가장 크게, 근거와 조치는 그 아래."""
+    tone = "#c2410c" if cert.needs_human else "#b91c1c"
+    esc = html.escape
+    reasons = "".join(f"<li>{esc(r)}</li>" for r in cert.reasons)
+    actions = "".join(f"<li>{esc(a)}</li>" for a in cert.actions)
+    criteria = "".join(f"<li>{esc(c)}</li>" for c in cert.criteria)
+    sop = f" <span style='opacity:.6;font-weight:400'>{esc(cert.sop_id)}</span>" if cert.sop_id else ""
+    crit_block = f"<h4 style='margin:14px 0 4px'>판정 기준{sop}</h4><ul style='margin:0'>{criteria}</ul>" if criteria else ""
+    return (
+        f"<div style='border-left:6px solid {tone};padding:4px 0 4px 16px'>"
+        f"<div style='font-size:13px;opacity:.65'>판정</div>"
+        f"<div style='font-size:30px;font-weight:700;color:{tone};line-height:1.25'>{esc(cert.verdict)}</div>"
+        f"<div style='margin-top:6px;font-size:15px'>{esc(cert.defect_ko)} · 확신도 {cert.confidence:.0%}</div>"
+        f"</div>"
+        f"<h4 style='margin:16px 0 4px'>판정 근거</h4><ul style='margin:0'>{reasons}</ul>"
+        f"{crit_block}"
+        f"<h4 style='margin:14px 0 4px'>조치{sop}</h4><ol style='margin:0'>{actions}</ol>"
+        f"<div style='margin-top:14px;font-size:12px;opacity:.6'>성적서 {esc(cert.cert_id)} · {esc(cert.issued)}"
+        f" · 모델 {esc(cert.model_version)}</div>"
+    )
+
+
+def run_certificate(image):
+    """사진 한 장 → (위치가 표시된 사진, 판정 카드, 성적서 PDF)."""
+    from app.certificate import draw_overlay, issue, to_pdf
+
+    if not image:
+        return None, "예시 사진을 누르거나 사진을 올리면 검사합니다.", None
+    predictor, detector = _get_inspectors()
+    if predictor is None:
+        return None, "분류 모델을 불러오지 못해 검사를 진행할 수 없습니다.", None
+    cert = issue(image, predictor, detector)
+    work = tempfile.mkdtemp(prefix="cert_")
+    overlay = draw_overlay(image, cert, os.path.join(work, "overlay.png"))
+    pdf = to_pdf(cert, os.path.join(work, f"inspection_certificate_{cert.cert_id}.pdf"))
+    return overlay, _cert_card(cert), pdf
 
 
 # ───────────────────────── Tab 2 · 라인 모니터링 ─────────────────────────
@@ -170,12 +231,9 @@ def run_shift():
 
 # ───────────────────────── 통합 UI ─────────────────────────
 INTRO = (
-    "# 🏭🩺 InspectOps\n"
-    "**검증 가능한 제조·의료 검사 운영 플랫폼.** 중소 제조/의료기기가 검사 AI를 못 들이는 "
-    "**4대 벽**(라벨부족 콜드스타트·신규결함·규제추적성·비전문가운영)을 한 제품으로 넘습니다. "
-    "런타임 코어는 LangGraph supervisor(Inspection Copilot)이고, 모든 단계에 **검증 척추**가 "
-    "가로지릅니다 — 정확도 한 숫자가 아니라 불확실성·근거·추적성·운영안전으로 판정합니다.\n\n"
-    "_전부 키 없이 결정적으로 동작(LLM 키가 있으면 분석 탭이 실 SQL을 생성·실행)._"
+    "# InspectOps\n"
+    "사진 한 장을 넣으면 결함 위치, 판정, 조치가 적힌 검사 성적서가 나옵니다. "
+    "확신이 서지 않으면 판정하지 않고 사람에게 넘깁니다."
 )
 
 
@@ -183,9 +241,28 @@ def build_app() -> gr.Blocks:
     with gr.Blocks(title="InspectOps — 검사 운영 플랫폼") as app:
         gr.Markdown(INTRO)
 
-        with gr.Tab("🔎 검사 코파일럿"):
-            gr.Markdown("질문(+선택 이미지)을 넣으면 supervisor가 **동적 라우팅**해 비전·분석·지식·"
-                        "리포트로 보내고 근거·신뢰도와 함께 답합니다. 근거가 약하면 **사람 검토로 멈춥니다**.")
+        with gr.Tab("검사 성적서"):
+            with gr.Row():
+                with gr.Column(scale=5):
+                    cert_img = gr.Image(label="결함 위치", interactive=False, height=440)
+                with gr.Column(scale=6):
+                    cert_card = gr.HTML()
+                    cert_pdf = gr.File(label="검사 성적서 PDF", interactive=False)
+            with gr.Row():
+                with gr.Column(scale=6):
+                    cert_in = gr.Image(label="검사할 사진", type="filepath", height=150, render=False)
+                    gr.Examples([[p] for p in CERT_SAMPLES], inputs=[cert_in],
+                                label="예시 사진 — 누르면 바로 검사합니다")
+                with gr.Column(scale=5):
+                    cert_in.render()
+            cert_out = [cert_img, cert_card, cert_pdf]
+            cert_in.change(run_certificate, inputs=[cert_in], outputs=cert_out)
+            # 첫 화면에서 아무것도 누르지 않아도 결과가 보이게 첫 예시를 미리 돌린다.
+            app.load(lambda: run_certificate(CERT_SAMPLES[0]), outputs=cert_out)
+
+        with gr.Tab("질문하기"):
+            gr.Markdown("질문(사진은 선택)을 넣으면 사진 검사, 불량 통계, 처리 절차, 보고서 중 "
+                        "필요한 곳으로 보내 근거와 함께 답합니다. 근거가 약하면 답하지 않고 사람에게 넘깁니다.")
             with gr.Row():
                 with gr.Column(scale=2):
                     q = gr.Textbox(label="질문", placeholder="예: 스크래치 결함 처리 절차 알려줘", lines=2)
@@ -198,9 +275,8 @@ def build_app() -> gr.Blocks:
             out_report = gr.Markdown()
             btn.click(run_inspection, inputs=[q, img], outputs=[out_header, out_steps, out_report])
 
-        with gr.Tab("📡 라인 모니터링"):
-            gr.Markdown("센서 스트림(시뮬레이션·브로커 불요)을 흘려 이상을 탐지하고, 가장 이상 잦은 "
-                        "라인의 처리 SOP를 코파일럿이 그라운딩합니다 — 모니터가 신호를, 코파일럿이 근거를.")
+        with gr.Tab("라인 모니터링"):
+            gr.Markdown("센서 값(시뮬레이션)을 흘려 이상을 찾고, 이상이 가장 잦은 라인의 처리 절차를 함께 보여 줍니다.")
             with gr.Row():
                 line_in = gr.Dropdown(["L1", "L2", "L3", "L4"], value="L3", label="이상 주입 라인")
                 seed_in = gr.Number(value=7, label="시드", precision=0)
@@ -209,23 +285,20 @@ def build_app() -> gr.Blocks:
             mon_handoff = gr.Markdown()
             mon_btn.click(run_monitoring, inputs=[line_in, seed_in], outputs=[mon_events, mon_handoff])
 
-        with gr.Tab("♻️ 자가개선 루프"):
-            gr.Markdown("needs_human으로 멈춘 건이 검토 큐에 쌓이고, 교정 라벨이 임계에 닿으면 재학습을 "
-                        "트리거합니다. 후보 모델은 **안전 우선 승격 게이트**를 통과해야만 운영에 올라갑니다.")
-            imp_btn = gr.Button("자가개선 루프 실행", variant="primary")
+        with gr.Tab("모델 교체 심사"):
+            gr.Markdown("사람에게 넘어간 건이 검토 대기열에 쌓이고, 교정 라벨이 모이면 재학습합니다. "
+                        "새 모델은 정확도가 아니라 위험 기준을 통과해야 운영에 올라갑니다.")
+            imp_btn = gr.Button("실행", variant="primary")
             imp_out = gr.Markdown()
             imp_btn.click(run_improvement, inputs=None, outputs=imp_out)
 
-        with gr.Tab("📊 운영 대시보드"):
-            gr.Markdown("한 검사 교대(shift)를 단일 supervisor로 끝까지 흘리고, 같은 실행에서 "
-                        "**라우팅 분포·게이트 정지율·지연**을 집계합니다.")
-            shift_btn = gr.Button("한 교대 e2e 실행", variant="primary")
+        with gr.Tab("운영 지표"):
+            gr.Markdown("검사 한 교대분을 끝까지 돌리고 처리 경로, 사람에게 넘긴 비율, 지연을 집계합니다.")
+            shift_btn = gr.Button("한 교대 실행", variant="primary")
             shift_out = gr.Markdown()
             shift_btn.click(run_shift, inputs=None, outputs=shift_out)
 
-        gr.Markdown("---\n_InspectOps는 team-of-one 통합 데모입니다. 각 모듈은 독립 레포로도 살아있고, "
-                    "여기선 하나의 제품으로 어떻게 합쳐지는가(시스템 사고)와 런타임 코어의 실제 동작을 "
-                    "보입니다. 전부 무료(로컬·HF Spaces·샌드박스)._ · 코드: github.com/MJHolics/inspection-copilot")
+        gr.Markdown("---\n코드: github.com/MJHolics/inspection-copilot · 예시 사진: NEU 강판 표면 결함 데이터셋")
     return app
 
 

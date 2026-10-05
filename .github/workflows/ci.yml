@@ -15,7 +15,7 @@ jobs:
       # P1 코어는 순수 stdlib라 무거운 의존성(torch·chromadb·langgraph) 없이 테스트된다.
       # graph 테스트는 langgraph 미설치 시 자동 skip. MCP 서버 테스트는 mcp가 필요해 설치한다.
       - name: Install test deps
-        run: pip install pytest "ruff==0.16.9" "mcp>=1.0,<2"
+        run: pip install pytest "ruff==0.16.9" "mcp>=1.0,<2" numpy
       - name: Lint
         run: ruff check app tests cli.py demo.py
       - name: Test
